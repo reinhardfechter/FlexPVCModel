@@ -10,30 +10,27 @@ import matplotlib.pyplot as plt
 from tinydb import Query
 
 def thermomat_sva(db):
-	Files = alldatafiles()
+    equipment = 'thermomat'
+    
+    Files = alldatafiles(equipment)
 	
-	t = tm()
+    t = tm()
 
-	sample_number_all = []
+    Q = Query()
 
-	int_abs_err_all = []
-	ps_all = []
-	Q = Query()
-
-	with PdfPages('Test.pdf') as pdf:
-		for j, f in enumerate(Files):
+    with PdfPages('Test.pdf') as pdf:
+        for j, f in enumerate(Files[:3]):
 			split_tm = tm ()
 			
 			# Parsing filename
-			sample_number = file_parse(f)
-			sample_number_all.append(sample_number)
+			sample_number = file_parse(f, equipment)
 			
 			# Check if the relevant data exists and only do fit if necessary
 			check = db.search((Q.equipment_name == 'thermomat') & (Q.sample_number == int(sample_number)))
 			if len(check) == 0:
 			
 				# Get data
-				time_data, conduct_data = DataFile(f).simple_data()
+				time_data, conduct_data = DataFile(f, equipment).simple_data(equipment)
 
 				# Trim Data
 				cut_point = find_cut_point(conduct_data)
@@ -66,9 +63,6 @@ def thermomat_sva(db):
 					smallest_err = min([smallest_err, int_abs_err])
 					if smallest_err == int_abs_err:
 						best_p = p
-
-				int_abs_err_all.append(smallest_err)
-				ps_all.append(best_p)
 
 				# Plot fitted model and raw data
 				fig = plt.figure()
