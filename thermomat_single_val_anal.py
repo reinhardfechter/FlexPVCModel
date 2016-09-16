@@ -21,7 +21,6 @@ def thermomat_sva(db, redo):
 
     Q = Query()
 
-   
     for j, f in enumerate(Files[:1]):
         split_tm = tm ()
         

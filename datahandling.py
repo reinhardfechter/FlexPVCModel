@@ -11,7 +11,7 @@ def alldatafiles(equipment):
         config = json.load(f)
         datadir = os.path.expanduser(config['Raw_Data'] + equipment + '/')
     
-	if equipment == 'thermomat' or equipment == 'rheomix':
+	if equipment in ['thermomat', 'rheomix', 'MCC']:
 	    file_type = '*.txt'
 	else:
 	    file_type = '*.csv'
@@ -29,6 +29,10 @@ class DataFile:
             self.data = pd.read_table(filename, skiprows = 1, sep=',')
         elif equipment == 'rheomix':
             self.data = pd.read_table(filename, skiprows = 3, sep=';')
+        elif equipment == 'MCC':
+            self.data = pd.read_table(filename, skiprows = 7)
+        elif equipment in ['colour', 'LOI']:
+            self.data = pd.read_table(filename, sep=';')
 
     def simple_data(self, equipment):
         if equipment == 'thermomat':
@@ -44,7 +48,20 @@ class DataFile:
             time_data = self.data['t [min]'].values
             torque_data = self.data['Torque [Nm]'].values
             data = [time_data, torque_data]
-			
+        elif equipment == 'MCC':
+            time_data = self.data['Time (s)'].values
+            temp_data = self.data['Temperature (C)'].values
+            HRR_data = self.data['HRR (W/g)'].values
+            data = [time_data, temp_data, HRR_data]
+        elif equipment == 'colour':
+            sample_numbers = self.data['Sample'].values
+            YI = self.data['AVG YI'].values
+            data = [sample_numbers, YI]
+        elif equipment == 'LOI':
+            sample_numbers = self.data['Sample Number'].values
+            LOIs = self.data['LOI Final'].values
+            data = [sample_numbers, LOIs]
+           
         return data
 
 def file_parse(f, equipment):
@@ -62,10 +79,14 @@ def file_parse(f, equipment):
     elif equipment == 'rheomix':
         split_filename = filename.split('_')
         sample_number = split_filename[1][1:]
+    elif equipment == 'MCC':
+        split_filename = filename.split('.')
+        split_filename = split_filename[0].split('_')
+        sample_number = split_filename[0]
     
     return sample_number
 
-def my_query(db, equipment, sample_number, data_type):
+def my_query(equipment, sample_number, data_type):
     my_q = ((Query().equipment_name == equipment) &
             (Query().sample_number == int(sample_number)) &
             (Query().data_type == data_type))
@@ -82,7 +103,7 @@ def insert_update_db(db, update, equipment, sample_number, names, values):
             db.insert(entry)
 
         elif update == True:
-            db.update({'value': v}, my_query(db, equipment, sample_number, n))
+            db.update({'value': v}, my_query(equipment, sample_number, n))
 
 def access_db():
     with open('config.json') as f:
