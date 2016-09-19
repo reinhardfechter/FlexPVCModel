@@ -4,8 +4,6 @@ import glob
 import pandas as pd
 from tinydb import Query, TinyDB
 
-# read configuration file and expand ~ to user directory
-
 def alldatafiles(equipment):
     with open('config.json') as f:
         config = json.load(f)
@@ -31,7 +29,7 @@ class DataFile:
             self.data = pd.read_table(filename, skiprows = 3, sep=';')
         elif equipment == 'MCC':
             self.data = pd.read_table(filename, skiprows = 7)
-        elif equipment in ['colour', 'LOI']:
+        elif equipment in ['colour', 'LOI', 'tensile', 'MassFrac']:
             self.data = pd.read_table(filename, sep=';')
 
     def simple_data(self, equipment):
@@ -61,6 +59,24 @@ class DataFile:
             sample_numbers = self.data['Sample Number'].values
             LOIs = self.data['LOI Final'].values
             data = [sample_numbers, LOIs]
+        elif equipment == 'tensile':
+            sample_numbers = self.data['Sample Number'].values
+            E_t = self.data['E_t'].values
+            sigma_M = self.data['sigma_M'].values
+            epsilon_M = self.data['epsilon_M'].values
+            sigma_B = self.data['sigma_B'].values
+            epsilon_B = self.data['epsilon_B'].values
+            data = [sample_numbers, E_t, sigma_M, epsilon_M, sigma_B, epsilon_B]
+        elif equipment == 'MassFrac':
+            sample_numbers = self.data['Run'].values
+            PVC = self.data['PVC'].values
+            filler = self.data['Filler'].values
+            FR = self.data['FR'].values
+            stabiliser = self.data['Stabiliser'].values
+            DINP = self.data['DINP'].values
+            LDH = self.data['LDH'].values
+            sphericalF = self.data['Spherical F.'].values
+            data = [sample_numbers, PVC, filler, FR, stabiliser, DINP, LDH, sphericalF] 
            
         return data
 
@@ -111,3 +127,10 @@ def access_db():
         path = config['Results_Database']
     my_db = TinyDB(path + 'Single_Value_Database.json')
     return my_db
+
+def get_equip_names(db):
+    return list(set([i['equipment_name'] for i in db.all()]))
+
+def get_dtype_names(db, equipment):
+    equip_data = db.search(Query().equipment_name == equipment)
+    return list(set([i['data_type'] for i in equip_data]))
