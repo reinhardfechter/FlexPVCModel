@@ -1,4 +1,4 @@
-Thermomat Analysis
+Flexible PVC Data Analysis
 ==========================================
 
 These files are used to Analyse the data from a number of experiments and to fit empirical models to that data.
