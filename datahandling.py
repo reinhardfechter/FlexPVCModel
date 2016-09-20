@@ -121,11 +121,20 @@ def insert_update_db(db, update, equipment, sample_number, names, values):
         elif update == True:
             db.update({'value': v}, my_query(equipment, sample_number, n))
 
-def access_db():
+def access_sv_db():
+    # Accessing the data base containing processed experimental results i.e. in single value form
     with open('config.json') as f:
         config = json.load(f)
         path = config['Results_Database']
     my_db = TinyDB(path + 'Single_Value_Database.json')
+    return my_db
+
+def access_apm_db():
+    # Accessing the data base containing processed all possible models
+    with open('config.json') as f:
+        config = json.load(f)
+        path = config['All_Poss_Models_Database']
+    my_db = TinyDB(path + 'All_Possible_Models_Database.json')
     return my_db
 
 def get_equip_names(db):
