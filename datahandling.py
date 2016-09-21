@@ -81,6 +81,7 @@ class DataFile:
         return data
 
 def file_parse(f, equipment):
+    # Parses file names for different equipments to determine sample numbers
     from os import path
     
     direct, filename = path.split(f)
@@ -109,6 +110,7 @@ def my_query(equipment, sample_number, data_type):
     return my_q
 
 def insert_update_db(db, update, equipment, sample_number, names, values):
+    # Insert or update multiple data entries for the Single_Value_Database
     for n, v in zip(names, values):
         if update == False:
             entry = {'equipment_name': equipment,
@@ -129,17 +131,29 @@ def access_sv_db():
     my_db = TinyDB(path + 'Single_Value_Database.json')
     return my_db
 
-def access_apm_db():
+def access_other_db(db_no):
     # Accessing the data base containing processed all possible models
+    
+    db_names = ['All_Possible_Models_Database', 'All_Lin_Full_Model_Inputs', 'Fitting_Results']
+    db_name = db_names[db_no]
+    
     with open('config.json') as f:
         config = json.load(f)
-        path = config['All_Poss_Models_Database']
-    my_db = TinyDB(path + 'All_Possible_Models_Database.json')
+        path = config['Other_Databases']
+    my_db = TinyDB(path + db_name + '.json')
     return my_db
 
 def get_equip_names(db):
+    # Get the equipment names from the Single_Value_Database
     return list(set([i['equipment_name'] for i in db.all()]))
 
 def get_dtype_names(db, equipment):
+    # Get the data types given an equipment name from the Single_Value_Database
     equip_data = db.search(Query().equipment_name == equipment)
     return list(set([i['data_type'] for i in equip_data]))
+
+
+
+
+
+

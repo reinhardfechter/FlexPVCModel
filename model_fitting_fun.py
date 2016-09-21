@@ -1,80 +1,46 @@
 from tinydb import Query
-from datahandling import my_query
+from datahandling import my_query, access_other_db, access_sv_db
 from itertools import combinations
 from winsound import Beep
 from time import time
+from sklearn.cross_validation import cross_val_score
+from sklearn.feature_selection import f_regression
+from sklearn.linear_model import LinearRegression
+from gen_model_inputs import get_all_lin_model_inp
 Q = Query()
 
-def get_formulation(db, sample_number):
-    # Get mass fractions of the ingredients for a certain sample
-    ingredients = ['PVC', 'filler', 'FR', 'stabiliser', 'DINP', 'LDH', 'spherical_filler']
-    
-    formulation = []
-    for ing in ingredients:
-        mass_fr_entr = db.search((Q.sample_number == sample_number) &
-                                 (Q.ingredient == ing)
-                                )
-        formulation.append(mass_fr_entr[0]['value'])
-
-    return formulation
-
-def all_formulations(db):
-    # Get formulation for every sample
-    all_form = []
-
-    for i in range(53):
-        sample_number = i + 1
-        formulation = get_formulation(db, sample_number)
-
-        all_form.append(formulation)
-    
-    return all_form
-
-def full_model_lin(formulation):
-    # Include 2nd order Scheffe model terms
-    fml = formulation
-        
-    for j, m_fr in enumerate(formulation):
-        for k in range(j+1, 7):
-            param_2nd = m_fr*formulation[k]
-            fml.append(param_2nd)
-    
-    return fml
-
-def all_full_model_lin(db):
-    # Get all the full linearised model input values for each sample
-    all_form = all_formulations(db)
-
-    all_fml = []
-    for f in all_form:
-        full = full_model_lin(f)
-        all_fml.append(full)
-
-    return all_fml
-
-def gen_XY(db, equipment, data_type, all_full_models, model_select_code):
-    # Generates X and Y to fit one model for one equipment and data_type
-    X = []
+def gen_Y(db, equipment, data_type):
+    # Generates Y to for one equipment and data_type
     Y = []
+    sample_nos_Y = []
     for i in range(53):
         sample_number = i + 1
         entry = db.search(my_query(equipment, sample_number, data_type))
         if len(entry) == 1:
-            full_model_lin = all_full_models[i]
-            
-            full_model_selected = [p for i, p in enumerate(full_model_lin) if i in model_select_code]
-            
-            X.append(full_model_selected)
             Y.append(entry[0]['value'])
+            sample_nos_Y.append(sample_number)
             
         elif len(entry) != 0:
             print 'ERROR: repeated entry'
     
     Y_scaled = [(2*(y - min(Y))/(max(Y) - min(Y)) - 1) for y in Y]
     
-    return X, Y_scaled
+    return Y_scaled, sample_nos_Y
+
+def gen_X(sample_numbers_Y, all_full_models, model_select_code):
+    # Generates X and Y to fit one model for one equipment and data_type
+    X = []
+    for i in sample_numbers_Y:
+        full_model_lin = all_full_models[i - 1]
+            
+        full_model_selected = [p for i, p in enumerate(full_model_lin) if i in model_select_code]
+            
+        X.append(full_model_selected)
+
+    return X
     
 def gen_terms_key():
+    # Generates the key to the model codes
     terms_key = range(7)
     for i in combinations(range(7), 2):
         terms_key.append(list(i))
@@ -88,6 +54,8 @@ def my_sound():
     Beep(300,300)
 
 def gen_all_possible_models(db, up_to_no_terms):
+    # Generates all the possible 2nd order Scheffe models
+    # up to a given number of model terms
     terms_key = gen_terms_key()
 
     cnt = 0
@@ -110,7 +78,7 @@ def gen_all_possible_models(db, up_to_no_terms):
                             invalid = True
 
                 if invalid == False:
-                    db.insert({'mk': i})
+                    db.insert({'mc': i})
                     cnt += 1
 
             print '________________'
@@ -122,3 +90,48 @@ def gen_all_possible_models(db, up_to_no_terms):
             print 'Models with', number_of_terms, 'terms already done'
 
     my_sound()
+
+def fit_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers_Y, all_full_models):
+    # Fits one model to given Y and enters into fitted models db
+    check = db.search((Query().model_code == model_code)&
+                      (Query().equipment_name == equipment)&
+                      (Query().data_type == data_type))
+
+    if len(check) == 0:
+        X = gen_X(sample_numbers_Y, all_full_models, model_code)
+        model.fit(X, Y)
+        coef = model.coef_
+        scores = cross_val_score(model, X, Y)
+        R_sqrd = model.score(X,Y)
+        F, p_val = f_regression(X, Y)
+
+        entry = {'model_code': model_code,
+                 'n_terms': len(model_code),
+                 'equipment_name': equipment,
+                 'data_type': data_type,
+                 'coef': list(coef),
+                 'kfold_scores': list(scores),
+                 'R_sqrd': R_sqrd,
+                 'p_val': list(p_val)
+                }
+
+        db.insert(entry)
+
+def fit_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_models, only_model_codes):
+    # Fits all the models for a certain data type
+    Y, sn_Y = gen_Y(sv_db, equipment, data_type)
+    
+    for i in only_model_codes[:2000]:
+        model_code = i['mk']
+        fit_1_model(db, equipment, data_type, model, model_code, Y, sn_Y, all_full_models)
+        
+def get_data_required_to_fit_model():
+    # Calculates all the data required to run fit_models_per_data_type
+    # that does not need to be recalculated in fit_models_per_data_type
+    all_mod_db = access_other_db(0)
+    sv_db = access_sv_db()
+    fit_res_db = access_other_db(2)
+    only_model_codes = all_mod_db.search(Query().mk.exists())
+    model = LinearRegression(fit_intercept=False)
+    all_full_models = get_all_lin_model_inp()
+    return fit_res_db, sv_db, model, all_full_models, only_model_codes
