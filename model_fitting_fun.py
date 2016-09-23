@@ -4,7 +4,7 @@ from itertools import combinations
 from winsound import Beep
 from time import time
 from sklearn.cross_validation import cross_val_score
-from sklearn.feature_selection import f_regression
+from sklearn.feature_selection import f_classif
 from sklearn.linear_model import LinearRegression
 from gen_model_inputs import get_all_lin_model_inp
 Q = Query()
@@ -103,7 +103,7 @@ def fit_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers_Y
         coef = model.coef_
         scores = cross_val_score(model, X, Y)
         R_sqrd = model.score(X,Y)
-        F, p_val = f_regression(X, Y)
+        F, p_val = f_classif(X, Y)
 
         entry = {'model_code': model_code,
                  'n_terms': len(model_code),
@@ -121,11 +121,11 @@ def fit_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_mo
     # Fits all the models for a certain data type
     Y, sn_Y = gen_Y(sv_db, equipment, data_type)
     
-    for i in only_model_codes[:2000]:
+    for i in only_model_codes[:100]:
         model_code = i['mk']
         fit_1_model(db, equipment, data_type, model, model_code, Y, sn_Y, all_full_models)
         
-def get_data_required_to_fit_model():
+def get_data_req_to_fit_model():
     # Calculates all the data required to run fit_models_per_data_type
     # that does not need to be recalculated in fit_models_per_data_type
     all_mod_db = access_other_db(0)

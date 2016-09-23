@@ -5,7 +5,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from lmfit import Parameters, minimize, report_fit
 from thermomat_functions import cond_model, f2min, find_cut_point, rand_ini_val, parameters
 from os import path
-from numpy import trapz
+from numpy import trapz, log
 import matplotlib.pyplot as plt
 from tinydb import Query
 
@@ -21,7 +21,7 @@ def thermomat_sva(db, redo):
 
     Q = Query()
 
-    for j, f in enumerate(Files[:1]):
+    for j, f in enumerate(Files):
         split_tm = tm ()
         
         # Parsing filename
@@ -74,10 +74,20 @@ def thermomat_sva(db, redo):
             data_types.append('int_of_abs_err')
             values.append(smallest_err)
             
+            # Calculate and enter stability time
+            # stability time used corresponds to the intercept
+            # between the tangent line at the inflection point to the t axis
+            theta = best_p['theta'].value
+            tau = best_p['tau'].value
+            
+            stab_time = tau*(1 - (log(theta)/(theta - 1)))*((theta - 1)**(1/theta))
+            data_types.append('stab_time_min')
+            values.append(stab_time)
+            
             if len(check) == 0:
                 insert_update_db(db, False, equipment, sample_number, data_types, values)
             else:
-                old_err = db.search(my_query(db, equipment, sample_number, 'int_of_abs_err'))[0]['value']
+                old_err = db.search(my_query(equipment, sample_number, 'int_of_abs_err'))[0]['value']
                 if smallest_err < old_err:
                     insert_update_db(db, True, equipment, sample_number, data_types, values)
                     print 'Updated Sample Number', sample_number

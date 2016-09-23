@@ -39,9 +39,11 @@ class DataFile:
             conduct_data = self.data[self.data.columns[1]].values
             data = [time_data, conduct_data]
         elif equipment == 'ConeCal':
-            time_data = self.data['Time (s)'].values
-            HRR_data = self.data[self.data.columns[3]].values
-            data = [time_data, HRR_data]
+            params = self.data['Parameter'].values
+            param_vals = self.data['Value'].values
+            # time_data = self.data['Time (s)'].values
+            # HRR_data = self.data[self.data.columns[3]].values
+            data = [params, param_vals]
         elif equipment == 'rheomix':
             time_data = self.data['t [min]'].values
             torque_data = self.data['Torque [Nm]'].values
@@ -133,9 +135,12 @@ def access_sv_db():
 
 def access_other_db(db_no):
     # Accessing the data base containing processed all possible models
-    
-    db_names = ['All_Possible_Models_Database', 'All_Lin_Full_Model_Inputs', 'Fitting_Results']
+    db_names = ['All_Possible_Models_Database', 
+                'All_Lin_Full_Model_Inputs', 
+                'Fitting_Results',
+                'Only_Top_Models']
     db_name = db_names[db_no]
+    print 'Accessed db:', db_name
     
     with open('config.json') as f:
         config = json.load(f)
@@ -151,9 +156,3 @@ def get_dtype_names(db, equipment):
     # Get the data types given an equipment name from the Single_Value_Database
     equip_data = db.search(Query().equipment_name == equipment)
     return list(set([i['data_type'] for i in equip_data]))
-
-
-
-
-
-
