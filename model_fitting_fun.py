@@ -4,7 +4,7 @@ from itertools import combinations
 from winsound import Beep
 from time import time
 from sklearn.cross_validation import cross_val_score
-from sklearn.feature_selection import f_classif
+from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from gen_model_inputs import get_all_lin_model_inp
 Q = Query()
@@ -99,20 +99,20 @@ def fit_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers_Y
 
     if len(check) == 0:
         X = gen_X(sample_numbers_Y, all_full_models, model_code)
-        model.fit(X, Y)
-        coef = model.coef_
+        # model.fit(X, Y)
+        # coef = model.coef_
         scores = cross_val_score(model, X, Y)
-        R_sqrd = model.score(X,Y)
-        F, p_val = f_classif(X, Y)
+        # R_sqrd = model.score(X,Y)
+        # F, p_val = f_regression(X, Y)
 
         entry = {'model_code': model_code,
                  'n_terms': len(model_code),
                  'equipment_name': equipment,
                  'data_type': data_type,
-                 'coef': list(coef),
+                 # 'coef': list(coef),
                  'kfold_scores': list(scores),
-                 'R_sqrd': R_sqrd,
-                 'p_val': list(p_val)
+                 # 'R_sqrd': R_sqrd,
+                 # 'p_val': list(p_val)
                 }
 
         db.insert(entry)

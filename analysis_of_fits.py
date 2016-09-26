@@ -3,6 +3,7 @@ from tinydb import Query
 from numpy import mean, std, insert
 from bisect import bisect
 from model_fitting_fun import gen_terms_key
+import statsmodels.api as sm
 
 def get_top_models(db, equipment, data_type, no_models):
     # Finds the models with the highest scores up to a set number of models
@@ -71,3 +72,13 @@ def translate_model_code(model_code):
         else:
             mc_translated.append(ingredients[key[0]] + '*' + ingredients[key[1]])
     return mc_translated
+
+def model_stats(X, Y):
+    results = sm.OLS(Y, X).fit()
+    params = results.params
+    conf_int = results.conf_int()
+    r_sqrd = results.rsquared
+    p_vals = results.pvalues
+    t_vals = results.tvalues
+    
+    return params, conf_int, r_sqrd, p_vals, t_vals

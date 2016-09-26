@@ -150,7 +150,8 @@ def access_other_db(db_no):
 
 def get_equip_names(db):
     # Get the equipment names from the Single_Value_Database
-    return list(set([i['equipment_name'] for i in db.all()]))
+    all_relevant = db.search(Query().equipment_name.exists())
+    return list(set([i['equipment_name'] for i in all_relevant]))
 
 def get_dtype_names(db, equipment):
     # Get the data types given an equipment name from the Single_Value_Database
