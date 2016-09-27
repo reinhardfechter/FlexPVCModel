@@ -1,5 +1,5 @@
 from tinydb import Query
-from datahandling import access_other_db, access_sv_db
+from datahandling import access_db
 
 Q = Query()
 
@@ -55,11 +55,11 @@ def gen_all_lin_model_inp():
     # model inputs from space filling experimental design
     tag = 'All_Lin_Full_Model_List'
 
-    db = access_other_db(1)
+    db = access_db(1)
     check = db.all()
 
     if len(check) == 0:
-        sv_db = access_sv_db()
+        sv_db = access_db(0, True)
         all_full_models = all_full_model_lin(sv_db)
         db.insert({tag: all_full_models})
     else:
@@ -68,5 +68,5 @@ def gen_all_lin_model_inp():
 def get_all_lin_model_inp():
     # Gets all the full model inputs from the All_Lin_Full_Model_Inputs 
     tag = 'All_Lin_Full_Model_List'
-    db = access_other_db(1)
+    db = access_db(1, True)
     return db.all()[0][tag]

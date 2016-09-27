@@ -1,8 +1,9 @@
-from datahandling import access_sv_db, get_equip_names
+from datahandling import access_sv_db, get_equip_names, access_other_db
 from rheomix_single_val_anal import rheomix_sva
 from thermomat_single_val_anal import thermomat_sva
 from MCC_single_val_anal import MCC_sva
-from raw_to_db import raw_to_db, raw_to_db_conecal, raw_to_db_tensile, raw_to_db_massfrac
+from raw_to_db import raw_to_db, raw_to_db_conecal, raw_to_db_tensile, calc_tensile_mean, raw_to_db_massfrac
+from model_fitting_fun import gen_all_possible_models
 
 def preprocessing():
     # Runs all the functions that put raw data into the single values database
@@ -40,6 +41,7 @@ def preprocessing():
             raw_to_db_conecal(sv_db)
         elif n == 'tensile':
             raw_to_db_tensile(sv_db)
+            calc_tensile_mean(sv_db)
         elif n == 'massfrac':
             raw_to_db_massfrac(sv_db)
 
@@ -47,4 +49,16 @@ def preprocessing():
         print '___________________________'
 
     print 'Data Preprocessing Complete'
+    print '****************************'
+   
+def all_poss_models():
+    print '****************************'
+    print 'Generate All Possible Models'
+    print ''
+    
+    db = access_other_db(0)
+    gen_all_possible_models(db, 11)
+    
+    print ''
+    print 'Generate All Possible Models Complete'
     print '****************************'

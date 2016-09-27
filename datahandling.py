@@ -125,28 +125,25 @@ def insert_update_db(db, update, equipment, sample_number, names, values):
         elif update == True:
             db.update({'value': v}, my_query(equipment, sample_number, n))
 
-def access_sv_db():
-    # Accessing the data base containing processed experimental results i.e. in single value form
-    with open('config.json') as f:
-        config = json.load(f)
-        path = config['Results_Database']
-    my_db = TinyDB(path + 'Single_Value_Database.json')
-    return my_db
-
-def access_other_db(db_no):
-    # Accessing the data base containing processed all possible models
-    db_names = ['All_Possible_Models_Database', 
-                'All_Lin_Full_Model_Inputs', 
-                'Fitting_Results',
+def access_db(db, from_list):
+    # Accessing the databases
+    # If from_list is True then enter index of desired db name
+    # If from_list is False then enter db name as first entry
+    db_names = ['Single_Value_Database',
+                'All_Lin_Full_Model_Inputs',
                 'Only_Top_Models']
-    db_name = db_names[db_no]
-    print 'Accessed db:', db_name
+    if from_list == True:
+        db_name = db_names[db]
+        print 'Accessed db:', db_name
+    else:
+        db_name = db
     
     with open('config.json') as f:
         config = json.load(f)
-        path = config['Other_Databases']
+        path = config['Databases']
     my_db = TinyDB(path + db_name + '.json')
     return my_db
+
 
 def get_equip_names(db):
     # Get the equipment names from the Single_Value_Database

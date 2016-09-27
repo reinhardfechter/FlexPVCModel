@@ -1,5 +1,6 @@
-from datahandling import alldatafiles, DataFile, insert_update_db, file_parse
+from datahandling import alldatafiles, DataFile, insert_update_db, file_parse, get_dtype_names
 from tinydb import Query
+from numpy import mean
 
 def raw_to_db(db, equipment, data_type):
     # Works for LOI and Colour Data
@@ -57,6 +58,38 @@ def raw_to_db_tensile(db):
                          'value': val
                         }
                 db.insert(entry)
+ 
+def calc_tensile_mean(sv_db):
+    # Calculates the mean values between the different tensile specimens
+    # and enters them into the single values database
+    equipment = 'tensile'
+    data_types = get_dtype_names(sv_db, equipment)
+    if len(data_types) == 10:
+        data_types = [d for i, d in enumerate(data_types) if i in [0,4,6,8,9]]
+    
+    Q = Query()
+    
+    for i in range(53):
+        sn = i + 1
+
+        for dt in data_types:
+                data = sv_db.search((Q.equipment_name == equipment) &
+                                    (Q.sample_number == sn) &
+                                    (Q.data_type == dt)
+                                   )
+                if len(data) != 0:
+                    check = sv_db.search((Q.equipment_name == equipment) &
+                                         (Q.sample_number == sn) &
+                                         (Q.data_type == (dt + '_mean'))
+                                         )
+                                         
+                    if len(check) == 0:
+                        vals = [d['value'] for d in data]
+                        mean_val = mean(vals)
+                        sv_db.insert({'equipment_name': equipment,
+                                      'sample_number': sn,
+                                      'data_type': (dt + '_mean'),
+                                      'value': mean_val})
                 
 def raw_to_db_massfrac(db):
     Q = Query()

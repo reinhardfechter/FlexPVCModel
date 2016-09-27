@@ -1,5 +1,5 @@
 from tinydb import Query
-from datahandling import my_query, access_other_db, access_sv_db
+from datahandling import my_query, access_db
 from itertools import combinations
 from winsound import Beep
 from time import time
@@ -13,16 +13,14 @@ def gen_Y(db, equipment, data_type):
     # Generates Y to for one equipment and data_type
     Y = []
     sample_nos_Y = []
-    for i in range(53):
-        sample_number = i + 1
-        entry = db.search(my_query(equipment, sample_number, data_type))
-        if len(entry) == 1:
-            Y.append(entry[0]['value'])
-            sample_nos_Y.append(sample_number)
-            
-        elif len(entry) != 0:
-            print 'ERROR: repeated entry'
     
+    data = db.search((Q.equipment_name == equipment) &
+                     (Q.data_type == data_type))
+    
+    for i in data:
+        Y.append(i['value'])
+        sample_nos_Y.append(i['sample_number'])
+        
     Y_scaled = [(2*(y - min(Y))/(max(Y) - min(Y)) - 1) for y in Y]
     
     return Y_scaled, sample_nos_Y
@@ -53,20 +51,29 @@ def my_sound():
     Beep(450,300)
     Beep(300,300)
 
-def gen_all_possible_models(db, up_to_no_terms):
+def gen_all_possible_models(no_terms, up_to):
     # Generates all the possible 2nd order Scheffe models
-    # up to a given number of model terms
+    # up to a given number of model terms if up_to is True
+    # else only the number of terms
+
     terms_key = gen_terms_key()
 
     cnt = 0
     t = time()
+    
+    if up_to == True:
+        cut = 0
+    else:
+        cut = no_terms - 1
 
-    for k in range(up_to_no_terms):
+    for k in range(no_terms)[cut:]:
         number_of_terms = k + 1
-        check = db.search(Query().NumberofTermsDone == number_of_terms)
+
+        db = access_db(('All_Poss_Mod_' + str(number_of_terms) + '_Terms'), False)
+
+        check = db.all()
 
         if len(check) == 0:
-            db.insert({'NumberofTermsDone': number_of_terms})
 
             for i in combinations(range(28), number_of_terms):
                 invalid = False
@@ -87,51 +94,61 @@ def gen_all_possible_models(db, up_to_no_terms):
             minutes, seconds = divmod(req_time, 60)
             print 'Required Time:', round(minutes), 'min and', round(seconds, 2), 's'
         else:
+            print '________________'
             print 'Models with', number_of_terms, 'terms already done'
 
-    my_sound()
+    # my_sound()
 
-def fit_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers_Y, all_full_models):
-    # Fits one model to given Y and enters into fitted models db
-    check = db.search((Query().model_code == model_code)&
-                      (Query().equipment_name == equipment)&
-                      (Query().data_type == data_type))
+def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers_Y, all_full_models):
+    # Scores one model to given Y and enters into scored models db
+    
+    do_check = True
+    
+    if do_check == True:
+        check = db.search((Query().model_code == model_code)&
+                          (Query().equipment_name == equipment)&
+                          (Query().data_type == data_type))
+    else:
+        check = []
 
     if len(check) == 0:
         X = gen_X(sample_numbers_Y, all_full_models, model_code)
-        # model.fit(X, Y)
-        # coef = model.coef_
         scores = cross_val_score(model, X, Y)
-        # R_sqrd = model.score(X,Y)
-        # F, p_val = f_regression(X, Y)
+        scores = [round(s, 3) for s in scores]
 
         entry = {'model_code': model_code,
                  'n_terms': len(model_code),
                  'equipment_name': equipment,
                  'data_type': data_type,
-                 # 'coef': list(coef),
-                 'kfold_scores': list(scores),
-                 # 'R_sqrd': R_sqrd,
-                 # 'p_val': list(p_val)
+                 'kfold_scores': list(scores)
                 }
 
         db.insert(entry)
 
-def fit_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_models, only_model_codes):
+def score_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_models, all_model_codes):
     # Fits all the models for a certain data type
     Y, sn_Y = gen_Y(sv_db, equipment, data_type)
     
-    for i in only_model_codes[:100]:
+    for i in all_model_codes[:100]:
         model_code = i['mk']
-        fit_1_model(db, equipment, data_type, model, model_code, Y, sn_Y, all_full_models)
+        score_1_model(db, equipment, data_type, model, model_code, Y, sn_Y, all_full_models)
         
-def get_data_req_to_fit_model():
-    # Calculates all the data required to run fit_models_per_data_type
-    # that does not need to be recalculated in fit_models_per_data_type
-    all_mod_db = access_other_db(0)
-    sv_db = access_sv_db()
-    fit_res_db = access_other_db(2)
-    only_model_codes = all_mod_db.search(Query().mk.exists())
+def get_data_req_to_score_model():
+    # Calculates all the data required to run score_models_per_data_type
+    # that does not need to be recalculated in score_models_per_data_type
+  
+    all_model_codes = []
+
+    for i in range(28):
+        number_of_terms = i + 1
+        db = access_db(('All_Poss_Mod_' + str(number_of_terms) + '_Terms'), False)
+        
+        db_all = db.all()
+        if len(db_all) != 0:
+            for entry in db_all:
+                all_model_codes.append(entry['mc'])
+    
+    sv_db = access_db(0, True)
     model = LinearRegression(fit_intercept=False)
     all_full_models = get_all_lin_model_inp()
-    return fit_res_db, sv_db, model, all_full_models, only_model_codes
+    return sv_db, model, all_full_models, all_model_codes
