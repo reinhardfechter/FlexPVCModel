@@ -4,7 +4,7 @@ from datahandling import access_db
 Q = Query()
 
 def get_formulation(db, sample_number):
-    # Get mass fractions of the ingredients for a certain sample
+    """ Get mass fractions of the ingredients for a certain sample """
     ingredients = ['PVC', 'filler', 'FR', 'stabiliser', 'DINP', 'LDH', 'spherical_filler']
     
     formulation = []
@@ -17,7 +17,7 @@ def get_formulation(db, sample_number):
     return formulation
     
 def all_formulations(db):
-    # Get formulation for every sample
+    """ Get formulation for every sample """
     all_form = []
 
     for i in range(53):
@@ -29,7 +29,7 @@ def all_formulations(db):
     return all_form
     
 def full_model_lin(formulation):
-    # Include 2nd order Scheffe model terms
+    """ Include 2nd order Scheffe model terms """
     fml = formulation
         
     for j, m_fr in enumerate(formulation):
@@ -40,7 +40,7 @@ def full_model_lin(formulation):
     return fml
     
 def all_full_model_lin(db):
-    # Get all the full linearised model input values for each sample
+    """ Get all the full linearised model input values for each sample """
     all_form = all_formulations(db)
 
     all_fml = []
@@ -51,8 +51,8 @@ def all_full_model_lin(db):
     return all_fml
 
 def gen_all_lin_model_inp():
-    # Generates all linearised full 2nd order Scheffe 
-    # model inputs from space filling experimental design
+    """ Generates all linearised full 2nd order Scheffe 
+    model inputs from space filling experimental design """
     tag = 'All_Lin_Full_Model_List'
 
     db = access_db(1)
@@ -66,7 +66,7 @@ def gen_all_lin_model_inp():
         print 'Already generated all linearised full model inputs (X)'
 
 def get_all_lin_model_inp():
-    # Gets all the full model inputs from the All_Lin_Full_Model_Inputs 
+    """ Gets all the full model inputs from the All_Lin_Full_Model_Inputs """ 
     tag = 'All_Lin_Full_Model_List'
     db = access_db(1, True)
     return db.all()[0][tag]

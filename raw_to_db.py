@@ -3,7 +3,7 @@ from tinydb import Query
 from numpy import mean
 
 def raw_to_db(db, equipment, data_type):
-    # Works for LOI and Colour Data
+    """ Works for LOI and Colour Data """
     
     File = alldatafiles(equipment)
     f = File[0]
@@ -60,8 +60,8 @@ def raw_to_db_tensile(db):
                 db.insert(entry)
  
 def calc_tensile_mean(sv_db):
-    # Calculates the mean values between the different tensile specimens
-    # and enters them into the single values database
+    """ Calculates the mean values between the different tensile specimens
+    and enters them into the single values database """
     equipment = 'tensile'
     data_types = get_dtype_names(sv_db, equipment)
     if len(data_types) == 10:
@@ -139,14 +139,13 @@ def raw_to_db_conecal(db):
                           'tot_HR_MJpm2',
                           'tot_O2cons_g',
                           'tot_masslost_g',
-                          'tot_smokerel_m2pm2',
                           'tot_smokeprod_m2',
                           'MARHE_kW_m2',
                           'C-factor',
                           't_to_ign_s'
                          ]
 
-            dtype_indexes = [1, 9, 23, 24, 25, 27, 28, 29, 83, 84]
+            dtype_indexes = [1, 9, 23, 24, 25, 28, 29, 83, 84]
 
             values = [param_vals[i] for i in dtype_indexes]
 

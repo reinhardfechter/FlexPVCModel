@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 from tinydb import Query
 
 def thermomat_sva(db, redo):
-    # Setting redo = True will repeat analysis even if it has been done for that sample already
-    # The data in the data base will only be updated if the Error is less
+    """ Setting redo = True will repeat analysis even if it has been done for that sample already
+    The data in the data base will only be updated if the Error is less """
     
     equipment = 'thermomat'
 

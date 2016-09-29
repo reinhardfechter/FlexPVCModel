@@ -83,7 +83,7 @@ class DataFile:
         return data
 
 def file_parse(f, equipment):
-    # Parses file names for different equipments to determine sample numbers
+    """ Parses file names for different equipments to determine sample numbers """
     from os import path
     
     direct, filename = path.split(f)
@@ -112,7 +112,7 @@ def my_query(equipment, sample_number, data_type):
     return my_q
 
 def insert_update_db(db, update, equipment, sample_number, names, values):
-    # Insert or update multiple data entries for the Single_Value_Database
+    """ Insert or update multiple data entries for the Single_Value_Database """
     for n, v in zip(names, values):
         if update == False:
             entry = {'equipment_name': equipment,
@@ -126,9 +126,9 @@ def insert_update_db(db, update, equipment, sample_number, names, values):
             db.update({'value': v}, my_query(equipment, sample_number, n))
 
 def access_db(db, from_list):
-    # Accessing the databases
-    # If from_list is True then enter index of desired db name
-    # If from_list is False then enter db name as first entry
+    """ Accessing the databases
+    If from_list is True then enter index of desired db name
+    If from_list is False then enter db name as first entry """
     db_names = ['Single_Value_Database',
                 'All_Lin_Full_Model_Inputs',
                 'Only_Top_Models']
@@ -146,11 +146,11 @@ def access_db(db, from_list):
 
 
 def get_equip_names(db):
-    # Get the equipment names from the Single_Value_Database
+    """ Get the equipment names from the Single_Value_Database """
     all_relevant = db.search(Query().equipment_name.exists())
     return list(set([i['equipment_name'] for i in all_relevant]))
 
 def get_dtype_names(db, equipment):
-    # Get the data types given an equipment name from the Single_Value_Database
+    """ Get the data types given an equipment name from the Single_Value_Database """
     equip_data = db.search(Query().equipment_name == equipment)
     return list(set([i['data_type'] for i in equip_data]))
