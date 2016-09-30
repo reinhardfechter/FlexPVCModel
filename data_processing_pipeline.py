@@ -6,6 +6,7 @@ from raw_to_db import raw_to_db, raw_to_db_conecal, raw_to_db_tensile, calc_tens
 from model_scoring_func import gen_all_possible_models, get_data_req_to_score_model, score_models_per_data_type
 from time import time
 from model_analysis import get_top_models
+from gen_model_inputs import gen_all_lin_model_inp
 
 def preprocessing():
     """ Runs all the functions that put raw data into the single values database """
@@ -126,3 +127,20 @@ def get_all_top_models():
         sr_db = access_db('Score_results_'+ en + '_' + dt, False)
 
         get_top_models(tm_db, sr_db, en, dt, 3)
+
+def full_pipeline():
+    t = time()
+    
+    preprocessing()
+    all_poss_models()
+    gen_all_lin_model_inp()
+    model_scoring()
+    get_all_top_models()
+    
+    print ''
+    print '******************'
+    print 'Full data processing timeline complete'
+    req_time = time() - t
+    hours, seconds_left = divmod(req_time, 3600)
+    minutes, seconds = divmod(seconds_left, 60)
+    print 'Required Time:', int(hours), 'h,', int(minutes), 'min and', int(round(seconds)), 's'

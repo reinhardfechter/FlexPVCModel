@@ -55,7 +55,7 @@ def gen_all_lin_model_inp():
     model inputs from space filling experimental design """
     tag = 'All_Lin_Full_Model_List'
 
-    db = access_db(1)
+    db = access_db(1, True)
     check = db.all()
 
     if len(check) == 0:

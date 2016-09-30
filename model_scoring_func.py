@@ -106,8 +106,7 @@ def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers
     
     if do_check == True:
         check = db.search((Query().model_code == model_code))
-                          # (Query().equipment_name == equipment)&
-                          # (Query().data_type == data_type))
+                         
     else:
         check = []
 
@@ -115,12 +114,9 @@ def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers
         X = gen_X(sample_numbers_Y, all_full_models, model_code)
         my_cv = ShuffleSplit(len(Y), n_iter=3, test_size=0.333, random_state=0)
         scores = cross_val_score(model, X, Y, cv=my_cv)
-        # scores = [round(s, 3) for s in scores]
 
         entry = {'model_code': model_code,
                  'n_terms': len(model_code),
-                 # 'equipment_name': equipment,
-                 # 'data_type': data_type,
                  'kfold_scores': list(scores)
                 }
 
@@ -140,7 +136,7 @@ def get_data_req_to_score_model():
   
     all_model_codes = []
 
-    for i in range(7):
+    for i in range(4):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_' + str(number_of_terms) + '_Terms'), False)
         
