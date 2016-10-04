@@ -2,14 +2,14 @@ from datahandling import alldatafiles, DataFile, insert_update_db, file_parse, g
 from tinydb import Query
 from numpy import mean
 
+Q = Query()
+
 def raw_to_db(db, equipment, data_type):
     """ Works for LOI and Colour Data """
     
     File = alldatafiles(equipment)
     f = File[0]
     sample_numbers, vals = DataFile(f, equipment).simple_data(equipment)
-    
-    Q = Query()
 
     for sample_number, val in zip(sample_numbers, vals):
         
@@ -25,7 +25,6 @@ def raw_to_db(db, equipment, data_type):
             
 def raw_to_db_tensile(db):
     equipment = 'tensile'
-    Q = Query()
     File = alldatafiles(equipment)
     f = File[0]
     
@@ -67,8 +66,6 @@ def calc_tensile_mean(sv_db):
     if len(data_types) == 10:
         data_types = [d for i, d in enumerate(data_types) if i in [0,4,6,8,9]]
     
-    Q = Query()
-    
     for i in range(53):
         sn = i + 1
 
@@ -90,9 +87,8 @@ def calc_tensile_mean(sv_db):
                                       'sample_number': sn,
                                       'data_type': (dt + '_mean'),
                                       'value': mean_val})
-                
+                              
 def raw_to_db_massfrac(db):
-    Q = Query()
     File = alldatafiles('InputMassFractions')
     f = File[0]
     
@@ -121,14 +117,15 @@ def raw_to_db_massfrac(db):
                 db.insert(entry)
     
 def raw_to_db_conecal(db):
+
     equipment = 'ConeCal'
     Files = alldatafiles(equipment)
 
     for f in Files:
         sample_no = file_parse(f, equipment)
 
-        check = db.search((Query().sample_number == int(sample_no)) &
-                          (Query().equipment_name == equipment)
+        check = db.search((Q.sample_number == int(sample_no)) &
+                          (Q.equipment_name == equipment)
                          )
 
         if len(check) == 0:

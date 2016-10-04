@@ -7,6 +7,7 @@ from sklearn.cross_validation import cross_val_score, ShuffleSplit
 from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from gen_model_inputs import get_all_lin_model_inp
+from numpy import mean
 Q = Query()
 
 def gen_Y(db, equipment, data_type):
@@ -105,7 +106,7 @@ def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers
     do_check = True
     
     if do_check == True:
-        check = db.search((Query().model_code == model_code))
+        check = db.search((Q.model_code == model_code))
                          
     else:
         check = []
@@ -117,7 +118,7 @@ def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers
 
         entry = {'model_code': model_code,
                  'n_terms': len(model_code),
-                 'kfold_scores': list(scores)
+                 'kfold_score': mean(list(scores))
                 }
 
         db.insert(entry)

@@ -74,11 +74,11 @@ def model_scoring():
     for_scoring = equip_dtypes_for_scoring()
 
     for i in for_scoring:
-        en, dt = i
-        db = access_db('Score_results_'+ en + '_' + dt, False)
+        equip_name, data_type = i
+        db = access_db('Score_results_'+ equip_name + '_' + data_type, False)
         split_time = time()
-        score_models_per_data_type(db, sv_db, en, dt, model, all_full_models, all_model_codes)
-        print 'Scored models for', en, dt
+        score_models_per_data_type(db, sv_db, equip_name, data_type, model, all_full_models, all_model_codes)
+        print 'Scored models for', equip_name, data_type
         split_time = time() - split_time
         print 'Split Time:', round(split_time, 2), 's'
 
@@ -121,6 +121,9 @@ def get_all_top_models():
     been scored """
     for_scoring = equip_dtypes_for_scoring()
     tm_db = access_db(2, True)
+   
+    # from tinydb import TinyDB
+    # tm_db = TinyDB('test.json')
     
     for i in for_scoring:
         en, dt = i
