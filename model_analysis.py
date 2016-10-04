@@ -22,11 +22,12 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
             
             top_scores = [i['kfold_score'] for i in top_entries]
             top_mcodes = [i['model_code'] for i in top_entries]
+            
+            my_Q =((Q.equipment_name == equipment) &
+                   (Q.data_type == data_type) &
+                   (Q.n_terms == no_of_terms))
 
-            check = db.search((Q.equipment_name == equipment) &
-                              (Q.data_type == data_type) &
-                              (Q.n_terms == no_of_terms)
-                             )
+            check = db.search(my_Q)
 
             entry = {'equipment_name': equipment,
                      'data_type': data_type,
@@ -38,10 +39,7 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
             if len(check) == 0:
                 db.insert(entry)
             else:
-                db.remove((Q.equipment_name == equipment) &
-                          (Q.data_type == data_type) &
-                          (Q.n_terms == no_of_terms))
-                db.insert(entry)
+                db.update({'top_scores': top_scores, 'top_mcodes': top_mcodes}, my_Q)
           
 def translate_model_code(model_code):
     terms_key = gen_terms_key()
