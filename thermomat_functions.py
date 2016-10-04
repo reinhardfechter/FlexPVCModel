@@ -33,7 +33,7 @@ def find_cut_point(conduct_data):
         prev_prev_cond = prev_cond
         prev_cond = cond
     
-	if cut_found == False:
+	if not cut_found:
 		cut = None
 	
     return cut

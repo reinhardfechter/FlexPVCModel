@@ -62,7 +62,7 @@ def gen_all_possible_models(no_terms, up_to):
     cnt = 0
     t = time()
     
-    if up_to == True:
+    if up_to:
         cut = 0
     else:
         cut = no_terms - 1
@@ -85,7 +85,7 @@ def gen_all_possible_models(no_terms, up_to):
                         if key_1 not in i or key_2 not in i:
                             invalid = True
 
-                if invalid == False:
+                if not invalid:
                     db.insert({'mc': i})
                     cnt += 1
 
@@ -105,7 +105,7 @@ def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers
     
     do_check = True
     
-    if do_check == True:
+    if do_check:
         check = db.search((Q.model_code == model_code))
                          
     else:
