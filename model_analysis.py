@@ -17,29 +17,30 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
 
         if len(all_score_data) == 0:
             print 'Scoring results not available for', equipment, data_type, 'with', no_of_terms, 'terms'
-        else:
-            top_entries = nlargest(no_models, all_score_data, key=lambda e: e['kfold_score'])
-            
-            top_scores = [i['kfold_score'] for i in top_entries]
-            top_mcodes = [i['model_code'] for i in top_entries]
-            
-            my_Q =((Q.equipment_name == equipment) &
-                   (Q.data_type == data_type) &
-                   (Q.n_terms == no_of_terms))
+            continue
 
-            check = db.search(my_Q)
+        top_entries = nlargest(no_models, all_score_data,
+                               key=lambda e: e['kfold_score'])
 
+        top_scores = [i['kfold_score'] for i in top_entries]
+        top_mcodes = [i['model_code'] for i in top_entries]
+
+        my_Q = ((Q.equipment_name == equipment) &
+                (Q.data_type == data_type) &
+                (Q.n_terms == no_of_terms))
+
+        check = db.search(my_Q)
+
+        if len(check) == 0:
             entry = {'equipment_name': equipment,
                      'data_type': data_type,
                      'n_terms': no_of_terms,
                      'top_scores': top_scores,
                      'top_mcodes': top_mcodes
                     }
-        
-            if len(check) == 0:
-                db.insert(entry)
-            else:
-                db.update({'top_scores': top_scores, 'top_mcodes': top_mcodes}, my_Q)
+            db.insert(entry)
+        else:
+            db.update({'top_scores': top_scores, 'top_mcodes': top_mcodes}, my_Q)
           
 def translate_model_code(model_code):
     terms_key = gen_terms_key()
