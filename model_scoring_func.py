@@ -70,58 +70,55 @@ def gen_all_possible_models(no_terms, up_to):
     for k in range(no_terms)[cut:]:
         number_of_terms = k + 1
 
-        db = access_db(('All_Poss_Mod_' + str(number_of_terms) + '_Terms'), False)
+        db = access_db('All_Poss_Mod_' + str(number_of_terms) + '_Terms', False)
 
         check = db.all()
 
-        if len(check) == 0:
-
-            for i in combinations(range(28), number_of_terms):
-                invalid = False
-                for j in i:
-                    if j >= 7:
-                        key_1 = terms_key[j][0]
-                        key_2 = terms_key[j][1]
-                        if key_1 not in i or key_2 not in i:
-                            invalid = True
-
-                if not invalid:
-                    db.insert({'mc': i})
-                    cnt += 1
-
-            print '________________'
-            print cnt, 'models with', number_of_terms, 'terms entered into DB'
-            req_time = time() - t
-            minutes, seconds = divmod(req_time, 60)
-            print 'Required Time:', round(minutes), 'min and', round(seconds, 2), 's'
-        else:
+        if len(check) > 0:
             print '________________'
             print 'Models with', number_of_terms, 'terms already done'
+            continue
+
+        for i in combinations(range(28), number_of_terms):
+            invalid = False
+            for j in i:
+                if j >= 7:
+                    key_1 = terms_key[j][0]
+                    key_2 = terms_key[j][1]
+                    if key_1 not in i or key_2 not in i:
+                        invalid = True
+
+            if not invalid:
+                db.insert({'mc': i})
+                cnt += 1
+
+        print '________________'
+        print cnt, 'models with', number_of_terms, 'terms entered into DB'
+        req_time = time() - t
+        minutes, seconds = divmod(req_time, 60)
+        print 'Required Time:', round(minutes), 'min and', round(seconds, 2), 's'
 
     # my_sound()
 
-def score_1_model(db, equipment, data_type, model, model_code, Y, sample_numbers_Y, all_full_models):
+def score_1_model(db, model, model_code, Y, sample_numbers_Y, all_full_models,
+                  do_check=True):
     """ Scores one model to given Y and enters into scored models db """
-    
-    do_check = True
     
     if do_check:
         check = db.search((Q.model_code == model_code))
-                         
-    else:
-        check = []
+        if len(check) > 0:
+            return
 
-    if len(check) == 0:
-        X = gen_X(sample_numbers_Y, all_full_models, model_code)
-        my_cv = ShuffleSplit(len(Y), n_iter=3, test_size=0.333, random_state=0)
-        scores = cross_val_score(model, X, Y, cv=my_cv)
+    X = gen_X(sample_numbers_Y, all_full_models, model_code)
+    my_cv = ShuffleSplit(len(Y), n_iter=3, test_size=0.333, random_state=0)
+    scores = cross_val_score(model, X, Y, cv=my_cv)
 
-        entry = {'model_code': model_code,
-                 'n_terms': len(model_code),
-                 'kfold_score': mean(list(scores))
-                }
+    entry = {'model_code': model_code,
+             'n_terms': len(model_code),
+             'kfold_score': mean(list(scores))
+            }
 
-        db.insert(entry)
+    db.insert(entry)
 
 def score_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_models, all_model_codes):
     """ Fits all the models for a certain data type """
@@ -129,7 +126,7 @@ def score_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_
     
     for i in all_model_codes:
         model_code = i
-        score_1_model(db, equipment, data_type, model, model_code, Y, sn_Y, all_full_models)
+        score_1_model(db, model, model_code, Y, sn_Y, all_full_models)
         
 def get_data_req_to_score_model():
     """ Calculates all the data required to run score_models_per_data_type
