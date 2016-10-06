@@ -1,4 +1,4 @@
-from datahandling import alldatafiles, DataFile, insert_update_db, file_parse, get_dtype_names
+from datahandling import alldatafiles, DataFile, insert_update_db, file_parse, get_dtype_names, extractnames
 from tinydb import Query
 from numpy import mean
 
@@ -81,7 +81,7 @@ def calc_tensile_mean(sv_db):
                                          )
                                          
                     if len(check) == 0:
-                        vals = [d['value'] for d in data]
+                        vals = extractnames(data, 'value')
                         mean_val = mean(vals)
                         sv_db.insert({'equipment_name': equipment,
                                       'sample_number': sn,
