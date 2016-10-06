@@ -1,5 +1,5 @@
 from tinydb import Query
-from datahandling import my_query, access_db
+from datahandling import my_query, access_db, extractnames
 from itertools import combinations
 from winsound import Beep
 from time import time
@@ -12,16 +12,11 @@ Q = Query()
 
 def gen_Y(db, equipment, data_type):
     """ Generates Y to for one equipment and data_type """
-    Y = []
-    sample_nos_Y = []
-    
     data = db.search((Q.equipment_name == equipment) &
                      (Q.data_type == data_type))
-    
-    for i in data:
-        Y.append(i['value'])
-        sample_nos_Y.append(i['sample_number'])
-        
+
+    Y, sample_nos_Y = extractnames(data, 'value', 'sample_number')
+
     Y_scaled = [(2*(y - min(Y))/(max(Y) - min(Y)) - 1) for y in Y]
     
     return Y_scaled, sample_nos_Y
@@ -137,12 +132,9 @@ def get_data_req_to_score_model():
     for i in range(4):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_' + str(number_of_terms) + '_Terms'), False)
-        
-        db_all = db.all()
-        if len(db_all) != 0:
-            for entry in db_all:
-                all_model_codes.append(entry['mc'])
-    
+
+        all_model_codes += extractnames((db.all(), 'mc'))
+
     sv_db = access_db(0, True)
     model = LinearRegression(fit_intercept=False)
     all_full_models = get_all_lin_model_inp()

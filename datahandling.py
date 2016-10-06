@@ -148,9 +148,17 @@ def access_db(db, from_list):
 def get_equip_names(db):
     """ Get the equipment names from the Single_Value_Database """
     all_relevant = db.search(Query().equipment_name.exists())
-    return list(set([i['equipment_name'] for i in all_relevant]))
+    return list(set(extractnames(all_relevant, 'equipment_name')))
 
 def get_dtype_names(db, equipment):
     """ Get the data types given an equipment name from the Single_Value_Database """
     equip_data = db.search(Query().equipment_name == equipment)
-    return list(set([i['data_type'] for i in equip_data]))
+    return list(set(extractnames(equip_data, 'data_type')))
+
+def extractnames(dictlist, *names):
+    result = list(map(list, zip(*[[item[name] for name in names]
+                                  for item in dictlist])))
+    if len(names) == 1:
+        return result[0]
+    else:
+        return result

@@ -1,4 +1,4 @@
-from datahandling import access_db
+from datahandling import access_db, extractnames
 from tinydb import Query
 from numpy import mean, std, insert
 from bisect import bisect
@@ -22,8 +22,7 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
         top_entries = nlargest(no_models, all_score_data,
                                key=lambda e: e['kfold_score'])
 
-        top_scores = [i['kfold_score'] for i in top_entries]
-        top_mcodes = [i['model_code'] for i in top_entries]
+        top_scores, top_mcodes = extractnames(top_entries, 'kfold_score', 'model_code')
 
         my_Q = ((Q.equipment_name == equipment) &
                 (Q.data_type == data_type) &
