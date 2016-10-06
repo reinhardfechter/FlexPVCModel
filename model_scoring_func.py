@@ -67,9 +67,7 @@ def gen_all_possible_models(no_terms, up_to):
 
         db = access_db('All_Poss_Mod_' + str(number_of_terms) + '_Terms', False)
 
-        check = db.all()
-
-        if len(check) > 0:
+        if db:
             print '________________'
             print 'Models with', number_of_terms, 'terms already done'
             continue

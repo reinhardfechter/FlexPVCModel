@@ -56,14 +56,14 @@ def gen_all_lin_model_inp():
     tag = 'All_Lin_Full_Model_List'
 
     db = access_db(1, True)
-    check = db.all()
+    
+    if db:
+        print 'Already generated all linearised full model inputs'
+        return
 
-    if len(check) == 0:
-        sv_db = access_db(0, True)
-        all_full_models = all_full_model_lin(sv_db)
-        db.insert({tag: all_full_models})
-    else:
-        print 'Already generated all linearised full model inputs (X)'
+    sv_db = access_db(0, True)
+    all_full_models = all_full_model_lin(sv_db)
+    db.insert({tag: all_full_models})
 
 def get_all_lin_model_inp():
     """ Gets all the full model inputs from the All_Lin_Full_Model_Inputs """ 
