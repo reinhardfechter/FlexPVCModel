@@ -100,8 +100,8 @@ def score_1_model(db, model, model_code, Y, sample_numbers_Y, all_full_models,
     """ Scores one model to given Y and enters into scored models db """
     
     if do_check:
-        check = db.search((Q.model_code == model_code))
-        if len(check) > 0:
+        done = db.contains((Q.model_code == model_code))
+        if done:
             return
 
     X = gen_X(sample_numbers_Y, all_full_models, model_code)

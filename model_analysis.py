@@ -28,9 +28,9 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
                 (Q.data_type == data_type) &
                 (Q.n_terms == no_of_terms))
 
-        check = db.search(my_Q)
+        done = db.contains(my_Q)
 
-        if len(check) == 0:
+        if not done:
             entry = {'equipment_name': equipment,
                      'data_type': data_type,
                      'n_terms': no_of_terms,

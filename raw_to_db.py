@@ -13,9 +13,9 @@ def raw_to_db(db, equipment, data_type):
 
     for sample_number, val in zip(sample_numbers, vals):
         
-        check = db.search((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
+        done = db.contains((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
         
-        if len(check) == 0:
+        if not done:
             entry = {'equipment_name': equipment,
                      'sample_number': int(sample_number),
                      'data_type': data_type,
@@ -44,12 +44,12 @@ def raw_to_db_tensile(db):
     
     for d, d_n in zip(data, data_types):
         for n, s, val in zip(sample_numbers_only, specimens, d):
-            check = db.search((Q.equipment_name == equipment) &
+            done = db.contains((Q.equipment_name == equipment) &
                               (Q.sample_number == int(n)) &
                               (Q.specimen_number == int(s)) &
                               (Q.data_type == d_n)
                              ) 
-            if len(check) == 0:
+            if not done:
                 entry = {'equipment_name': equipment,
                          'sample_number': int(n),
                          'specimen_number': int(s),
@@ -75,12 +75,12 @@ def calc_tensile_mean(sv_db):
                                     (Q.data_type == dt)
                                    )
                 if len(data) != 0:
-                    check = sv_db.search((Q.equipment_name == equipment) &
+                    done = sv_db.contains((Q.equipment_name == equipment) &
                                          (Q.sample_number == sn) &
                                          (Q.data_type == (dt + '_mean'))
                                          )
                                          
-                    if len(check) == 0:
+                    if not done:
                         vals = extractnames(data, 'value')
                         mean_val = mean(vals)
                         sv_db.insert({'equipment_name': equipment,
@@ -102,12 +102,12 @@ def raw_to_db_massfrac(db):
     
     for d, d_n in zip(data, ingredients):
         for n, val in zip(sample_numbers, d):
-            check = db.search((Q.sample_number == n) &
+            done = db.contains((Q.sample_number == n) &
                               (Q.data_type == raw_in) &
                               (Q.ingredient == d_n)
                              )
 
-            if len(check) == 0:
+            if not done:
                 entry = {'sample_number': int(n),
                          'data_type': raw_in,
                          'ingredient': d_n,
@@ -124,11 +124,11 @@ def raw_to_db_conecal(db):
     for f in Files:
         sample_no = file_parse(f, equipment)
 
-        check = db.search((Q.sample_number == int(sample_no)) &
+        done = db.contains((Q.sample_number == int(sample_no)) &
                           (Q.equipment_name == equipment)
                          )
 
-        if len(check) == 0:
+        if not done:
             params, param_vals = DataFile(f, equipment).simple_data(equipment)
 
             data_types = ['peak_HRR_kWpm2',

@@ -10,10 +10,10 @@ def rheomix_sva(db):
     for f in alldatafiles(equipment):
         sample_number = file_parse(f, equipment)
 
-        check = db.search((Q.equipment_name == equipment)
+        done = db.contains((Q.equipment_name == equipment)
                           & (Q.sample_number == int(sample_number)))
 
-        if len(check) > 0:
+        if done:
             print 'Skipped Sample', sample_number
             continue
 

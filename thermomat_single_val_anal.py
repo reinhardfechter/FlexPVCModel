@@ -28,10 +28,10 @@ def thermomat_sva(db, redo):
         sample_number = file_parse(f, equipment)
         
         # Check if the relevant data exists and only do fit if necessary
-        check = db.search((Q.equipment_name == 'thermomat')
+        done = db.contains((Q.equipment_name == 'thermomat')
                           & (Q.sample_number == int(sample_number)))
 
-        if len(check) > 0 and not redo:
+        if done and not redo:
             print 'Skipped Fit', (j + 1)
             continue
 
@@ -89,7 +89,7 @@ def thermomat_sva(db, redo):
         data_types.append('stab_time_min')
         values.append(stab_time)
 
-        if len(check) == 0:
+        if not done:
             insert_update_db(db, False, equipment, sample_number, data_types, values)
         else:
             old_err = db.search(my_query(equipment, sample_number, 'int_of_abs_err'))[0]['value']

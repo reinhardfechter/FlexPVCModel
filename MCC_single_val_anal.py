@@ -19,9 +19,9 @@ def MCC_sva_one_f(db, f, equipment):
     else:
         double = False
 
-    check = db.search((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
+    done = db.count((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
     
-    if (not double and len(check) == 9) or (double and len(check) == 18):
+    if (not double and done == 9) or (double and done == 18):
         print 'Skipped Sample', sample_number
         return
     
