@@ -1,5 +1,8 @@
 import glob
 import json
+import pandas
+import os.path
+
 
 class Equipment:
     """
@@ -13,37 +16,36 @@ class Equipment:
     sep = ';'  # for read_table
     datafields = ()  # for extracting simple_data - the base class doesn't use this
     file_type = "*.csv"  # for alldatafiles
+    name = "base"
 
+    def __init__(self):
+        self.data = None
 
     def read_data(self, filename):
         """ Generic method to read from a file"""
-        self.data = pd.read_table(filename, skiprows=self.skiprows, sep=self.sep)
-
+        self.data = pandas.read_table(filename, skiprows=self.skiprows,
+                                      sep=self.sep)
 
     def simple_data(self, filename):
         self.read_data(filename)
         return self.simplify_data()
 
-
     def simplify_data(self):
         return [self.data[field].values for field in self.datafields]
-
 
     def alldatafiles(self):
         with open('config.json') as f:
             config = json.load(f)
             datadir = os.path.expanduser(config['Raw_Data'] + self.name + '/')
 
-        return glob.glob(os.path.join(datadir, file_type))
-
+        return glob.glob(os.path.join(datadir, self.file_type))
 
     def sample_number(self, filename):
         """ Given a filename, parse out the sample number - override"""
         raise NotImplementedError
 
-
     def file_parse(self, f):
-        direct, filename = path.split(f)
+        direct, filename = os.path.split(f)
         return self.sample_number(filename)
 
 
@@ -51,7 +53,6 @@ class Thermomat(Equipment):
     skiprows = 4
     sep = ';'
     name = 'thermomat'
-
 
     def simple_data(self, filename):
         """
@@ -62,11 +63,9 @@ class Thermomat(Equipment):
         """
         self.read_data(filename)
 
-        time_data = self.data['s'].values
-        time_data = time_data / 60
+        time_data = self.data['s'].values / 60
         conduct_data = self.data[self.data.columns[1]].values
         return [time_data, conduct_data]
-
 
     def sample_number(self, filename):
         split_filename = filename.split(' ')
@@ -133,7 +132,6 @@ class MassFrac(Equipment):
     sep = ';'
     datafields = 'Run', 'PVC', 'Filler', 'FR', 'Stabiliser', 'DINP', 'LDH', 'Spherical F.'
     name = 'MassFrac'
-
 
 
 # The basic idea is that you would write all the functions you have everywhere
