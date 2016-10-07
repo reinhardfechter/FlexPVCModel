@@ -2,7 +2,7 @@ import glob
 import json
 import pandas
 import os.path
-
+import datahandling
 
 class Equipment:
     """
@@ -34,11 +34,9 @@ class Equipment:
         return [self.data[field].values for field in self.datafields]
 
     def alldatafiles(self):
-        with open('config.json') as f:
-            config = json.load(f)
-            datadir = os.path.expanduser(config['Raw_Data'] + self.name + '/')
-
-        return glob.glob(os.path.join(datadir, self.file_type))
+        return glob.glob(os.path.join(datahandling.datadir,
+                                      self.name,
+                                      self.file_type))
 
     def sample_number(self, filename):
         """ Given a filename, parse out the sample number - override"""

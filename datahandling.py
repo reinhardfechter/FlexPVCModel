@@ -4,17 +4,23 @@ import glob
 import pandas as pd
 from tinydb import Query, TinyDB
 
+with open('config.json') as f:
+    config = json.load(f)
+    datadir = os.path.expanduser(config['Raw_Data'])
+    dbpath = os.path.expanduser(config['Databases'])
+
+    assert os.path.exists(datadir)
+    assert os.path.exists(dbpath)
+
+
 def alldatafiles(equipment):
-    with open('config.json') as f:
-        config = json.load(f)
-        datadir = os.path.expanduser(config['Raw_Data'] + equipment + '/')
-    
-	if equipment in ['thermomat', 'rheomix', 'MCC']:
-	    file_type = '*.txt'
-	else:
-	    file_type = '*.csv'
-    return glob.glob(os.path.join(datadir, file_type))
-	
+    if equipment in ['thermomat', 'rheomix', 'MCC']:
+        file_type = '*.txt'
+    else:
+        file_type = '*.csv'
+    return glob.glob(os.path.join(datadir, equipment, file_type))
+
+
 class DataFile:
     """ Class for holding data """
     def __init__(self, filename, equipment):
@@ -138,10 +144,7 @@ def access_db(db, from_list):
     else:
         db_name = db
     
-    with open('config.json') as f:
-        config = json.load(f)
-        path = config['Databases']
-    my_db = TinyDB(path + db_name + '.json')
+    my_db = TinyDB(os.path.join(dbpath, db_name + '.json'))
     return my_db
 
 
