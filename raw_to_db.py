@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datahandling import alldatafiles, DataFile, insert_update_db, file_parse, get_dtype_names, extractnames
 from tinydb import Query
 from numpy import mean
@@ -148,6 +149,4 @@ def raw_to_db_conecal(db):
 
             insert_update_db(db, False, equipment, sample_no, data_types, values)
         else:
-            print 'skipped sample', sample_no    
-    
-        
+            print('skipped sample', sample_no)

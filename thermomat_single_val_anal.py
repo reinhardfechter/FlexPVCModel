@@ -1,3 +1,6 @@
+from __future__ import division
+from __future__ import print_function
+
 from datahandling import alldatafiles, DataFile, file_parse, insert_update_db, my_query
 from time import time as tm
 import pandas as pd
@@ -32,7 +35,7 @@ def thermomat_sva(db, redo):
                           & (Q.sample_number == int(sample_number)))
 
         if done and not redo:
-            print 'Skipped Fit', (j + 1)
+            print('Skipped Fit', (j + 1))
             continue
 
         # Get data
@@ -63,7 +66,7 @@ def thermomat_sva(db, redo):
             result = minimize(f2min, p, args=(time_data, conduct_data))
 
             err_list = f2min(p, time_data, conduct_data)
-            abs_err_list = map(abs, err_list)
+            abs_err_list = list(map(abs, err_list))
             int_abs_err = trapz(abs_err_list, x=time_data)
 
             smallest_err = min([smallest_err, int_abs_err])
@@ -95,11 +98,11 @@ def thermomat_sva(db, redo):
             old_err = db.search(my_query(equipment, sample_number, 'int_of_abs_err'))[0]['value']
             if smallest_err < old_err:
                 insert_update_db(db, True, equipment, sample_number, data_types, values)
-                print 'Updated Sample Number', sample_number
+                print('Updated Sample Number', sample_number)
 
         split_tm = tm() - split_tm
-        print 'Completed Fit', (j + 1), 'in', round(split_tm, 2), '(s)'
+        print('Completed Fit', (j + 1), 'in', round(split_tm, 2), '(s)')
 
     req_time = tm() - t
-    print '******************'
-    print 'Time required (min) =', round(req_time/60.0, 2)
+    print('******************')
+    print('Time required (min) =', round(req_time/60.0, 2))

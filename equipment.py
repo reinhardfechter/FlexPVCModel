@@ -1,10 +1,12 @@
+from __future__ import division
+
 import glob
-import json
 import pandas
 import os.path
 import datahandling
 
-class Equipment:
+
+class Equipment(object):
     """
     Base class for equipment
     Currently implements the stuff that DataFile implements, but without
@@ -17,6 +19,7 @@ class Equipment:
     datafields = ()  # for extracting simple_data - the base class doesn't use this
     file_type = "*.csv"  # for alldatafiles
     name = "base"
+    encoding = 'iso-8859-1'
 
     def __init__(self):
         self.data = None
@@ -24,7 +27,7 @@ class Equipment:
     def read_data(self, filename):
         """ Generic method to read from a file"""
         self.data = pandas.read_table(filename, skiprows=self.skiprows,
-                                      sep=self.sep)
+                                      sep=self.sep, encoding=self.encoding)
 
     def simple_data(self, filename):
         self.read_data(filename)

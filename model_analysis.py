@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datahandling import access_db, extractnames
 from tinydb import Query
 from numpy import mean, std, insert
@@ -16,7 +17,7 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
         all_score_data = sr_db.search((Q.n_terms == no_of_terms))
 
         if len(all_score_data) == 0:
-            print 'Scoring results not available for', equipment, data_type, 'with', no_of_terms, 'terms'
+            print('Scoring results not available for', equipment, data_type, 'with', no_of_terms, 'terms')
             continue
 
         top_entries = nlargest(no_models, all_score_data,
