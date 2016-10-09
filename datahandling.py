@@ -161,6 +161,7 @@ def get_dtype_names(db, equipment):
     return list(set(extractnames(equip_data, 'data_type')))
 
 def extractnames(dictlist, *names):
+    assert len(names) > 0
     result = list(map(list, list(zip(*[[item[name] for name in names]
                                   for item in dictlist]))))
     if len(names) == 1:
