@@ -51,7 +51,7 @@ def MCC_sva_one_f(db, f, equipment):
     cut_end = where(time_data==500)[0][0]
     ind_min_2 = argmin(HRR_data[ind_max_1:cut_end])
     ind_min_2 += ind_max_1
-    ind_max_2 = argmax(HRR_data[(ind_min_2):])
+    ind_max_2 = argmax(HRR_data[ind_min_2:])
     ind_max_2 += ind_min_2
 
     # Data for each max
