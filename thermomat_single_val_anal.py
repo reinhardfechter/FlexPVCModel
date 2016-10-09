@@ -8,7 +8,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from lmfit import Parameters, minimize, report_fit
 from thermomat_functions import cond_model, f2min, find_cut_point, rand_ini_val, parameters
 from os import path
-from numpy import trapz, log
+from numpy import trapz, log, abs
 import matplotlib.pyplot as plt
 from tinydb import Query
 
@@ -58,19 +58,19 @@ def thermomat_sva(db, redo):
 
         # Fit Data with multiple starts
         starts = 10
-        smallest_err = 10000000.0
+        smallest_err = None
 
         for i in range(starts):
             ini_val = rand_ini_val(ini_val_up_lim)
-            p = parameters(ini_val, ini_val_up_lim)
-            result = minimize(f2min, p, args=(time_data, conduct_data))
+            p0 = parameters(ini_val, ini_val_up_lim)
+            result = minimize(f2min, p0, args=(time_data, conduct_data))
+            p = result.params
 
-            err_list = f2min(p, time_data, conduct_data)
-            abs_err_list = list(map(abs, err_list))
-            int_abs_err = trapz(abs_err_list, x=time_data)
+            err = f2min(p, time_data, conduct_data)
+            int_abs_err = trapz(abs(err), x=time_data)
 
-            smallest_err = min([smallest_err, int_abs_err])
-            if smallest_err == int_abs_err:
+            if smallest_err is None or int_abs_err < smallest_err:
+                smallest_err = int_abs_err
                 best_p = p
 
         # Entering info into tinydb
