@@ -8,13 +8,9 @@ def cond_model(p, time):
     beta = p['beta'].value
     m = p['m'].value
 
-    model = []
-
-    for t in time:
-        # F_t = 1 - 1/(1 + (t/tau)**theta)
-        F_t = log(1 + t/tau**theta)
-        cond = m*t + beta*F_t
-        model.append(cond)
+    # F_t = 1 - 1/(1 + (t/tau)**theta)
+    F_t = log(1 + (time/tau)**theta)
+    model = m*time + beta*F_t
 
     return model
 
@@ -28,20 +24,14 @@ def find_cut_point(conduct_data):
     prev_cond = 1.0
     prev_prev_cond = 2.0
 
-    cut_found = False
     for i, cond in enumerate(conduct_data):
-        if cond == prev_cond and cond == prev_prev_cond and cut_found == False and cond > 40:
-            cut = i - 1
-            cut_found = True
+        if cond == prev_cond == prev_prev_cond and cond > 40:
+            return i - 1
 
         prev_prev_cond = prev_cond
         prev_cond = cond
 
-    if not cut_found:
-        cut = None
-
-    return cut
-
+    # functions return None by default
 
 def rand_ini_val(up_limits):
     theta_lim, tau_lim, beta_lim, m_lim = up_limits
