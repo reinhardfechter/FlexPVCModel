@@ -1,6 +1,6 @@
 from __future__ import division
 
-from numpy import log
+from numpy import log, random, array
 
 def cond_model(p, time):
     theta = p['theta'].value
@@ -33,22 +33,10 @@ def find_cut_point(conduct_data):
 
     # functions return None by default
 
-def rand_ini_val(up_limits):
-    theta_lim, tau_lim, beta_lim, m_lim = up_limits
-    from random import random
-    limits = [[1.0, theta_lim],
-              [1.0, tau_lim],
-              [1.0, beta_lim],
-              [0.0, m_lim]]
 
-    ini_val = []
-    for l in range(len(limits)):
-        lb = limits[l][0]
-        ub = limits[l][1]
-        new_val = lb + random()*(ub - lb)
-        ini_val.append(new_val)
-
-    return ini_val
+def rand_ini_val(ub):
+    lb = array([1., 1., 0., 0.])
+    return lb + random.rand(len(lb))*(ub - lb)
 
 
 def parameters(ini_val, up_limits):
