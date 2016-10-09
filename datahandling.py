@@ -1,3 +1,6 @@
+from __future__ import division
+from __future__ import print_function
+
 import json
 import os
 import glob
@@ -21,27 +24,26 @@ def alldatafiles(equipment):
     return glob.glob(os.path.join(datadir, equipment, file_type))
 
 
-class DataFile:
+class DataFile(object):
     """ Class for holding data """
     def __init__(self, filename, equipment):
         # Split into directory and filename parts
         self.directory, self.filename = os.path.split(filename)
         # Load with pandas
         if equipment == 'thermomat':
-            self.data = pd.read_table(filename, skiprows = 4, sep=';')
+            self.data = pd.read_table(filename, skiprows = 4, sep=';', encoding='iso-8859-1')
         elif equipment == 'ConeCal':
-            self.data = pd.read_table(filename, skiprows = 1, sep=',')
+            self.data = pd.read_table(filename, skiprows = 1, sep=',', encoding='iso-8859-1')
         elif equipment == 'rheomix':
-            self.data = pd.read_table(filename, skiprows = 3, sep=';')
+            self.data = pd.read_table(filename, skiprows = 3, sep=';', encoding='iso-8859-1')
         elif equipment == 'MCC':
-            self.data = pd.read_table(filename, skiprows = 7)
+            self.data = pd.read_table(filename, skiprows = 7, encoding='iso-8859-1')
         elif equipment in ['colour', 'LOI', 'tensile', 'MassFrac']:
-            self.data = pd.read_table(filename, sep=';')
+            self.data = pd.read_table(filename, sep=';', encoding='iso-8859-1')
 
     def simple_data(self, equipment):
         if equipment == 'thermomat':
-            time_data = self.data['s'].values
-            time_data = time_data/60
+            time_data = self.data['s'].values/60
             conduct_data = self.data[self.data.columns[1]].values
             data = [time_data, conduct_data]
         elif equipment == 'ConeCal':
@@ -93,7 +95,7 @@ def file_parse(f, equipment):
     from os import path
     
     direct, filename = path.split(f)
-	
+
     if equipment == 'thermomat':
         split_filename = filename.split(' ')
         sample_number = split_filename[1]
@@ -140,7 +142,7 @@ def access_db(db, from_list):
                 'Only_Top_Models']
     if from_list == True:
         db_name = db_names[db]
-        print 'Accessed db:', db_name
+        print('Accessed db:', db_name)
     else:
         db_name = db
     
@@ -159,8 +161,8 @@ def get_dtype_names(db, equipment):
     return list(set(extractnames(equip_data, 'data_type')))
 
 def extractnames(dictlist, *names):
-    result = list(map(list, zip(*[[item[name] for name in names]
-                                  for item in dictlist])))
+    result = list(map(list, list(zip(*[[item[name] for name in names]
+                                  for item in dictlist]))))
     if len(names) == 1:
         return result[0]
     else:

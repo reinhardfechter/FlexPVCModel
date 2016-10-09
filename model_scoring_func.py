@@ -1,3 +1,4 @@
+from __future__ import print_function
 from tinydb import Query
 from datahandling import my_query, access_db, extractnames
 from itertools import combinations
@@ -41,8 +42,8 @@ def gen_X(sample_numbers_Y, all_full_models, model_select_code):
     
 def gen_terms_key():
     """ Generates the key to the model codes """
-    terms_key = range(7)
-    for i in combinations(range(7), 2):
+    terms_key = list(range(7))
+    for i in combinations(list(range(7)), 2):
         terms_key.append(list(i))
     return terms_key
 
@@ -71,14 +72,14 @@ def gen_all_possible_models(no_terms, up_to):
     for k in range(no_terms)[cut:]:
         number_of_terms = k + 1
 
-        db = access_db('All_Poss_Mod_' + str(number_of_terms) + '_Terms', False)
+        db = access_db('All_Poss_Mod_{}_Terms'.format(number_of_terms), False)
 
         if db:
-            print '________________'
-            print 'Models with', number_of_terms, 'terms already done'
+            print('________________')
+            print('Models with', number_of_terms, 'terms already done')
             continue
 
-        for i in combinations(range(28), number_of_terms):
+        for i in combinations(list(range(28)), number_of_terms):
             invalid = False
             for j in i:
                 if j >= 7:
@@ -91,11 +92,11 @@ def gen_all_possible_models(no_terms, up_to):
                 db.insert({'mc': i})
                 cnt += 1
 
-        print '________________'
-        print cnt, 'models with', number_of_terms, 'terms entered into DB'
+        print('________________')
+        print(cnt, 'models with', number_of_terms, 'terms entered into DB')
         req_time = time() - t
         minutes, seconds = divmod(req_time, 60)
-        print 'Required Time:', round(minutes), 'min and', round(seconds, 2), 's'
+        print('Required Time:', round(minutes), 'min and', round(seconds, 2), 's')
 
     # my_sound()
 
@@ -135,7 +136,7 @@ def get_data_req_to_score_model():
 
     for i in range(4):
         number_of_terms = i + 1
-        db = access_db(('All_Poss_Mod_' + str(number_of_terms) + '_Terms'), False)
+        db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 
         all_model_codes += extractnames((db.all(), 'mc'))
 

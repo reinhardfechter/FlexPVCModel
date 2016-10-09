@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import print_function
 from datahandling import alldatafiles, file_parse, DataFile, insert_update_db, my_query
 from numpy import isnan, argmax, argmin, mean
 from pandas import ewma
@@ -14,7 +16,7 @@ def rheomix_sva(db):
                           & (Q.sample_number == int(sample_number)))
 
         if done:
-            print 'Skipped Sample', sample_number
+            print('Skipped Sample', sample_number)
             continue
 
         time_data, torque_data = DataFile(f, equipment).simple_data(equipment)
@@ -31,7 +33,7 @@ def rheomix_sva(db):
 
         # Divide data in to the first third and the second two thirds to capture the two maximums
 
-        cut_point = no_of_data_points / 3
+        cut_point = no_of_data_points//3
         torque_data_1 = torque_data[:cut_point]
         index_1 = argmax(torque_data_1)
 
@@ -54,7 +56,7 @@ def rheomix_sva(db):
         # alpha = 1 is no filtering, decrease alpha increase filtering
 
         alpha = 0.05
-        my_com = 1.0 / alpha - 1.0
+        my_com = 1.0/alpha - 1.0
 
         torque_data = ewma(torque_data, com=my_com)
 
@@ -116,4 +118,4 @@ def rheomix_sva(db):
         insert_update_db(db, False, equipment, sample_number, data_types,
                          values)
 
-        print 'Processed Sample', sample_number
+        print('Processed Sample', sample_number)
