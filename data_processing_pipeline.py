@@ -147,3 +147,7 @@ def full_pipeline():
     hours, seconds_left = divmod(req_time, 3600)
     minutes, seconds = divmod(seconds_left, 60)
     print 'Required Time:', int(hours), 'h,', int(minutes), 'min and', int(round(seconds)), 's'
+
+
+if __name__ == "__main__":
+    full_pipeline()

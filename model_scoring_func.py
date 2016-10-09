@@ -1,7 +1,13 @@
 from tinydb import Query
 from datahandling import my_query, access_db, extractnames
 from itertools import combinations
-from winsound import Beep
+
+try:
+    from winsound import Beep
+except ImportError:
+    def Beep(a, b):
+        pass
+
 from time import time
 from sklearn.cross_validation import cross_val_score, ShuffleSplit
 from sklearn.feature_selection import f_regression
