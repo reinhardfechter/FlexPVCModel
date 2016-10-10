@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datahandling import access_db, get_equip_names, get_dtype_names
 from rheomix_single_val_anal import rheomix_sva
 from thermomat_single_val_anal import thermomat_sva
@@ -22,13 +23,13 @@ def preprocessing():
                   'massfrac'
                  ]
     
-    print '****************************'
-    print 'Data Prepocessing'
-    print ''
+    print('****************************')
+    print('Data Prepocessing')
+    print('')
 
     for n in equip_names:
-        print 'Processing', n
-        print ''
+        print('Processing', n)
+        print('')
 
         if n == 'rheomix':
             rheomix_sva(sv_db)
@@ -49,21 +50,21 @@ def preprocessing():
             raw_to_db_massfrac(sv_db)
 
 
-        print '___________________________'
+        print('___________________________')
 
-    print 'Data Preprocessing Complete'
-    print '****************************'
+    print('Data Preprocessing Complete')
+    print('****************************')
    
 def all_poss_models():
-    print '****************************'
-    print 'Generate All Possible Models'
-    print ''
+    print('****************************')
+    print('Generate All Possible Models')
+    print('')
    
     gen_all_possible_models(4, True)
     
-    print ''
-    print 'Generate All Possible Models Complete'
-    print '****************************'
+    print('')
+    print('Generate All Possible Models Complete')
+    print('****************************')
     
 def model_scoring():
     """Scores the models for all data_types iteratively"""
@@ -78,13 +79,13 @@ def model_scoring():
         db = access_db('Score_results_'+ equip_name + '_' + data_type, False)
         split_time = time()
         score_models_per_data_type(db, sv_db, equip_name, data_type, model, all_full_models, all_model_codes)
-        print 'Scored models for', equip_name, data_type
+        print('Scored models for', equip_name, data_type)
         split_time = time() - split_time
-        print 'Split Time:', round(split_time, 2), 's'
+        print('Split Time:', round(split_time, 2), 's')
 
     req_time = time() - t
     minutes, seconds = divmod(req_time, 60)
-    print 'Required Time:', round(minutes), 'min and', round(seconds, 2), 's'
+    print('Required Time:', round(minutes), 'min and', round(seconds, 2), 's')
     
 def do_not_score_list():
     do_not_score = ['int_of_abs_err',
@@ -140,10 +141,14 @@ def full_pipeline():
     model_scoring()
     get_all_top_models()
     
-    print ''
-    print '******************'
-    print 'Full data processing timeline complete'
+    print('')
+    print('******************')
+    print('Full data processing timeline complete')
     req_time = time() - t
     hours, seconds_left = divmod(req_time, 3600)
     minutes, seconds = divmod(seconds_left, 60)
-    print 'Required Time:', int(hours), 'h,', int(minutes), 'min and', int(round(seconds)), 's'
+    print('Required Time:', int(hours), 'h,', int(minutes), 'min and', int(round(seconds)), 's')
+
+
+if __name__ == "__main__":
+    full_pipeline()

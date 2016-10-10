@@ -1,3 +1,6 @@
+from __future__ import division
+from __future__ import print_function
+
 from datahandling import alldatafiles, DataFile, file_parse, insert_update_db, my_query
 from tinydb import Query
 from numpy import where, argmax, argmin, trapz
@@ -22,7 +25,7 @@ def MCC_sva_one_f(db, f, equipment):
     done = db.count((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
     
     if (not double and done == 9) or (double and done == 18):
-        print 'Skipped Sample', sample_number
+        print('Skipped Sample', sample_number)
         return
     
     time_data, temp_data, HRR_data = DataFile(f, equipment).simple_data(equipment)
@@ -48,7 +51,7 @@ def MCC_sva_one_f(db, f, equipment):
     cut_end = where(time_data==500)[0][0]
     ind_min_2 = argmin(HRR_data[ind_max_1:cut_end])
     ind_min_2 += ind_max_1
-    ind_max_2 = argmax(HRR_data[(ind_min_2):])
+    ind_max_2 = argmax(HRR_data[ind_min_2:])
     ind_max_2 += ind_min_2
 
     # Data for each max
