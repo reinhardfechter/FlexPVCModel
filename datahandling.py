@@ -122,7 +122,7 @@ def my_query(equipment, sample_number, data_type):
 def insert_update_db(db, update, equipment, sample_number, names, values):
     """ Insert or update multiple data entries for the Single_Value_Database """
     for n, v in zip(names, values):
-        if update == False:
+        if update:
             entry = {'equipment_name': equipment,
                      'sample_number': int(sample_number),
                      'data_type': n,
@@ -130,7 +130,7 @@ def insert_update_db(db, update, equipment, sample_number, names, values):
                     }
             db.insert(entry)
 
-        elif update == True:
+        else:
             db.update({'value': v}, my_query(equipment, sample_number, n))
 
 def access_db(db, from_list):
@@ -140,7 +140,7 @@ def access_db(db, from_list):
     db_names = ['Single_Value_Database',
                 'All_Lin_Full_Model_Inputs',
                 'Only_Top_Models']
-    if from_list == True:
+    if from_list:
         db_name = db_names[db]
         print('Accessed db:', db_name)
     else:
@@ -161,6 +161,7 @@ def get_dtype_names(db, equipment):
     return list(set(extractnames(equip_data, 'data_type')))
 
 def extractnames(dictlist, *names):
+    assert len(names) > 0
     result = list(map(list, list(zip(*[[item[name] for name in names]
                                   for item in dictlist]))))
     if len(names) == 1:

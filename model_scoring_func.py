@@ -138,7 +138,7 @@ def get_data_req_to_score_model():
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 
-        all_model_codes += extractnames((db.all(), 'mc'))
+        all_model_codes += extractnames(db.all(), 'mc')
 
     sv_db = access_db(0, True)
     model = LinearRegression(fit_intercept=False)
