@@ -122,7 +122,7 @@ def my_query(equipment, sample_number, data_type):
 def insert_update_db(db, update, equipment, sample_number, names, values):
     """ Insert or update multiple data entries for the Single_Value_Database """
     for n, v in zip(names, values):
-        if update:
+        if not update:
             entry = {'equipment_name': equipment,
                      'sample_number': int(sample_number),
                      'data_type': n,
