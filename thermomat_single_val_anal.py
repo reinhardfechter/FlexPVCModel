@@ -1,7 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 
-from datahandling import alldatafiles, DataFile, file_parse, insert_update_db, my_query
+from datahandling import insert_update_db, my_query
 from time import time as tm
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
@@ -11,6 +11,7 @@ from os import path
 from numpy import trapz, log, abs
 import matplotlib.pyplot as plt
 from tinydb import Query
+from equipment import Thermomat
 
 def thermomat_sva(db, redo):
     """ Setting redo = True will repeat analysis even if it has been done for that sample already
@@ -18,7 +19,7 @@ def thermomat_sva(db, redo):
     
     equipment = 'thermomat'
 
-    Files = alldatafiles(equipment)
+    Files = Thermomat().alldatafiles()
     
     t = tm()
 
@@ -28,7 +29,7 @@ def thermomat_sva(db, redo):
         split_tm = tm()
         
         # Parsing filename
-        sample_number = file_parse(f, equipment)
+        sample_number = Thermomat().file_parse(f)
         
         # Check if the relevant data exists and only do fit if necessary
         done = db.contains((Q.equipment_name == 'thermomat')
@@ -39,7 +40,7 @@ def thermomat_sva(db, redo):
             continue
 
         # Get data
-        time_data, conduct_data = DataFile(f, equipment).simple_data(equipment)
+        time_data, conduct_data = Thermomat().simple_data(f)
 
         # Trim Data
         cut_point = find_cut_point(conduct_data)

@@ -1,16 +1,22 @@
 from __future__ import print_function
-from datahandling import alldatafiles, DataFile, insert_update_db, file_parse, get_dtype_names, extractnames
+from datahandling import insert_update_db, get_dtype_names, extractnames
 from tinydb import Query
 from numpy import mean
+from equipment import LOI, Colour, Tensile, MassFrac, ConeCal
 
 Q = Query()
 
 def raw_to_db(db, equipment, data_type):
     """ Works for LOI and Colour Data """
     
-    File = alldatafiles(equipment)
-    f = File[0]
-    sample_numbers, vals = DataFile(f, equipment).simple_data(equipment)
+    if equipment == 'LOI':
+        File = LOI().alldatafiles()
+        f = File[0]
+        sample_numbers, vals = LOI().simple_data(f)
+    elif equipment == 'colour':
+        File = Colour().alldatafiles()
+        f = File[0]
+        sample_numbers, vals = Colour().simple_data(f)
 
     for sample_number, val in zip(sample_numbers, vals):
         
@@ -26,10 +32,10 @@ def raw_to_db(db, equipment, data_type):
             
 def raw_to_db_tensile(db):
     equipment = 'tensile'
-    File = alldatafiles(equipment)
+    File = Tensile().alldatafiles()
     f = File[0]
     
-    data = DataFile(f, equipment).simple_data(equipment)
+    data = Tensile().simple_data(f)
     data_types = ['E_t_MPa', 'sigma_max_MPa', 'epsilon_max_%',
                   'sigma_break_MPa', 'epsilon_break_%']
     
@@ -90,12 +96,12 @@ def calc_tensile_mean(sv_db):
                                       'value': mean_val})
                               
 def raw_to_db_massfrac(db):
-    File = alldatafiles('InputMassFractions')
+    File = MassFrac().alldatafiles()
     f = File[0]
     
     raw_in = 'MassFrac'
     
-    data = DataFile(f, raw_in).simple_data(raw_in)
+    data = MassFrac().simple_data(f)
     sample_numbers = data[0]
     data = data[1:]
     
@@ -120,17 +126,17 @@ def raw_to_db_massfrac(db):
 def raw_to_db_conecal(db):
 
     equipment = 'ConeCal'
-    Files = alldatafiles(equipment)
+    Files = ConeCal().alldatafiles()
 
     for f in Files:
-        sample_no = file_parse(f, equipment)
+        sample_no = ConeCal().file_parse(f)
 
         done = db.contains((Q.sample_number == int(sample_no)) &
                           (Q.equipment_name == equipment)
                          )
 
         if not done:
-            params, param_vals = DataFile(f, equipment).simple_data(equipment)
+            params, param_vals = ConeCal().simple_data(f)
 
             data_types = ['peak_HRR_kWpm2',
                           't_peak_HRR_s',

@@ -1,21 +1,22 @@
 from __future__ import division
 from __future__ import print_function
 
-from datahandling import alldatafiles, DataFile, file_parse, insert_update_db, my_query
+from datahandling import insert_update_db, my_query
 from tinydb import Query
 from numpy import where, argmax, argmin, trapz
+from equipment import MCC
 Q = Query()
 
 def MCC_sva(db):
     equipment = 'MCC'
 
-    Files = alldatafiles(equipment)
+    Files = MCC().alldatafiles()
 
     for f in Files:
         MCC_sva_one_f(db, f, equipment)
 
 def MCC_sva_one_f(db, f, equipment):
-    sample_number = file_parse(f, equipment)
+    sample_number = MCC().file_parse(f)
 
     if sample_number in ['3', '4']:
         double = True
@@ -28,7 +29,7 @@ def MCC_sva_one_f(db, f, equipment):
         print('Skipped Sample', sample_number)
         return
     
-    time_data, temp_data, HRR_data = DataFile(f, equipment).simple_data(equipment)
+    time_data, temp_data, HRR_data = MCC().simple_data(f)
 
     # cut data to exclude first 100 s and everything after 600 s
 

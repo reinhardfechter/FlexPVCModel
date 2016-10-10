@@ -1,16 +1,17 @@
 from __future__ import division
 from __future__ import print_function
-from datahandling import alldatafiles, file_parse, DataFile, insert_update_db, my_query
+from datahandling import insert_update_db, my_query
 from numpy import isnan, argmax, argmin, mean
 from pandas import ewma
 from tinydb import TinyDB, Query
+from equipment import Rheomix
 
 def rheomix_sva(db):
     Q = Query()
     equipment = 'rheomix'
 
-    for f in alldatafiles(equipment):
-        sample_number = file_parse(f, equipment)
+    for f in Rheomix().alldatafiles():
+        sample_number = Rheomix().file_parse(f)
 
         done = db.contains((Q.equipment_name == equipment)
                           & (Q.sample_number == int(sample_number)))
@@ -19,7 +20,7 @@ def rheomix_sva(db):
             print('Skipped Sample', sample_number)
             continue
 
-        time_data, torque_data = DataFile(f, equipment).simple_data(equipment)
+        time_data, torque_data = Rheomix().simple_data(f)
 
         # Remove NaN from data
 

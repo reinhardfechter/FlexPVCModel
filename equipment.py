@@ -55,6 +55,7 @@ class Thermomat(Equipment):
     skiprows = 4
     sep = ';'
     name = 'thermomat'
+    file_type = '*.txt'
 
     def simple_data(self, filename):
         """
@@ -92,8 +93,9 @@ class ConeCal(Equipment):
 class Rheomix(Equipment):
     skiprows = 3
     sep = ';'
-    datafields = 'Parameter', 'Value'
+    datafields = 't [min]', 'Torque [Nm]'
     name = 'rheomix'
+    file_type = '*.txt'
 
     def sample_number(self, filename):
         split_filename = filename.split('_')
@@ -102,10 +104,11 @@ class Rheomix(Equipment):
 
 
 class MCC(Equipment):
-    skiprows = 0
+    skiprows = 7
     sep = "\t"
     datafields = 'Time (s)', 'Temperature (C)', 'HRR (W/g)'
     name = 'MCC'
+    file_type = '*.txt'
 
     def sample_number(self, filename):
         split_filename = filename.split('.')
@@ -133,7 +136,7 @@ class Tensile(Equipment):
 class MassFrac(Equipment):
     sep = ';'
     datafields = 'Run', 'PVC', 'Filler', 'FR', 'Stabiliser', 'DINP', 'LDH', 'Spherical F.'
-    name = 'MassFrac'
+    name = 'InputMassFractions'
 
 
 # The basic idea is that you would write all the functions you have everywhere
