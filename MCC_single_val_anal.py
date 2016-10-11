@@ -8,28 +8,28 @@ from equipment import MCC
 Q = Query()
 
 def MCC_sva(db):
-    equipment = 'MCC'
+    equipment = MCC()
 
-    Files = MCC().alldatafiles()
+    Files = equipment.alldatafiles()
 
     for f in Files:
         MCC_sva_one_f(db, f, equipment)
 
 def MCC_sva_one_f(db, f, equipment):
-    sample_number = MCC().file_parse(f)
+    sample_number = equipment.file_parse(f)
 
     if sample_number in ['3', '4']:
         double = True
     else:
         double = False
 
-    done = db.count((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
+    done = db.count((Q.equipment_name == equipment.name) & (Q.sample_number == int(sample_number)))
     
     if (not double and done == 9) or (double and done == 18):
         print('Skipped Sample', sample_number)
         return
     
-    time_data, temp_data, HRR_data = MCC().simple_data(f)
+    time_data, temp_data, HRR_data = equipment.simple_data(f)
 
     # cut data to exclude first 100 s and everything after 600 s
 
@@ -67,7 +67,7 @@ def MCC_sva_one_f(db, f, equipment):
         values = [d[i] for d in data]
         values = [round(v, 3) for v in values]
 
-        insert_update_db(db, False, equipment, sample_number, names, values)
+        insert_update_db(db, False, equipment.name, sample_number, names, values)
 
     # Calculate area under HRR curve to calculate total HR
     t_HR = trapz(HRR_data, x=time_data)/1000
@@ -78,4 +78,4 @@ def MCC_sva_one_f(db, f, equipment):
     values = [t_HR, t_HR_peak_1, t_HR_peak_2]
     values = [round(v, 3) for v in values]
 
-    insert_update_db(db, False, equipment, sample_number, names, values)
+    insert_update_db(db, False, equipment.name, sample_number, names, values)

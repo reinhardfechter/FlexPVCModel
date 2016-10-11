@@ -122,9 +122,6 @@ def get_all_top_models():
     been scored """
     for_scoring = equip_dtypes_for_scoring()
     tm_db = access_db(2, True)
-   
-    # from tinydb import TinyDB
-    # tm_db = TinyDB('test.json')
     
     for i in for_scoring:
         en, dt = i

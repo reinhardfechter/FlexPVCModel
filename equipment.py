@@ -136,7 +136,7 @@ class Tensile(Equipment):
 class MassFrac(Equipment):
     sep = ';'
     datafields = 'Run', 'PVC', 'Filler', 'FR', 'Stabiliser', 'DINP', 'LDH', 'Spherical F.'
-    name = 'InputMassFractions'
+    name = 'MassFrac'
 
 
 # The basic idea is that you would write all the functions you have everywhere

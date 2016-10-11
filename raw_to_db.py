@@ -6,24 +6,24 @@ from equipment import LOI, Colour, Tensile, MassFrac, ConeCal
 
 Q = Query()
 
-def raw_to_db(db, equipment, data_type):
+def raw_to_db(db, equip_name, data_type):
     """ Works for LOI and Colour Data """
     
-    if equipment == 'LOI':
-        File = LOI().alldatafiles()
-        f = File[0]
-        sample_numbers, vals = LOI().simple_data(f)
-    elif equipment == 'colour':
-        File = Colour().alldatafiles()
-        f = File[0]
-        sample_numbers, vals = Colour().simple_data(f)
-
+    if equip_name == 'LOI':
+        equipment = LOI()
+    elif equip_name == 'colour':
+        equipment = Colour()
+        
+    File = equipment.alldatafiles()
+    f = File[0]
+    sample_numbers, vals = equipment.simple_data(f)
+           
     for sample_number, val in zip(sample_numbers, vals):
         
-        done = db.contains((Q.equipment_name == equipment) & (Q.sample_number == int(sample_number)))
+        done = db.contains((Q.equipment_name == equipment.name) & (Q.sample_number == int(sample_number)))
         
         if not done:
-            entry = {'equipment_name': equipment,
+            entry = {'equipment_name': equipment.name,
                      'sample_number': int(sample_number),
                      'data_type': data_type,
                      'value': val
@@ -31,11 +31,11 @@ def raw_to_db(db, equipment, data_type):
             db.insert(entry)
             
 def raw_to_db_tensile(db):
-    equipment = 'tensile'
-    File = Tensile().alldatafiles()
+    equipment = Tensile()
+    File = equipment.alldatafiles()
     f = File[0]
     
-    data = Tensile().simple_data(f)
+    data = equipment.simple_data(f)
     data_types = ['E_t_MPa', 'sigma_max_MPa', 'epsilon_max_%',
                   'sigma_break_MPa', 'epsilon_break_%']
     
@@ -51,13 +51,13 @@ def raw_to_db_tensile(db):
     
     for d, d_n in zip(data, data_types):
         for n, s, val in zip(sample_numbers_only, specimens, d):
-            done = db.contains((Q.equipment_name == equipment) &
+            done = db.contains((Q.equipment_name == equipment.name) &
                               (Q.sample_number == int(n)) &
                               (Q.specimen_number == int(s)) &
                               (Q.data_type == d_n)
                              ) 
             if not done:
-                entry = {'equipment_name': equipment,
+                entry = {'equipment_name': equipment.name,
                          'sample_number': int(n),
                          'specimen_number': int(s),
                          'data_type': d_n,
@@ -68,8 +68,8 @@ def raw_to_db_tensile(db):
 def calc_tensile_mean(sv_db):
     """ Calculates the mean values between the different tensile specimens
     and enters them into the single values database """
-    equipment = 'tensile'
-    data_types = get_dtype_names(sv_db, equipment)
+    equipment = Tensile()
+    data_types = get_dtype_names(sv_db, equipment.name)
     if len(data_types) == 10:
         data_types = [d for i, d in enumerate(data_types) if i in [0,4,6,8,9]]
     
@@ -77,12 +77,12 @@ def calc_tensile_mean(sv_db):
         sn = i + 1
 
         for dt in data_types:
-                data = sv_db.search((Q.equipment_name == equipment) &
+                data = sv_db.search((Q.equipment_name == equipment.name) &
                                     (Q.sample_number == sn) &
                                     (Q.data_type == dt)
                                    )
                 if len(data) != 0:
-                    done = sv_db.contains((Q.equipment_name == equipment) &
+                    done = sv_db.contains((Q.equipment_name == equipment.name) &
                                          (Q.sample_number == sn) &
                                          (Q.data_type == (dt + '_mean'))
                                          )
@@ -90,18 +90,17 @@ def calc_tensile_mean(sv_db):
                     if not done:
                         vals = extractnames(data, 'value')
                         mean_val = mean(vals)
-                        sv_db.insert({'equipment_name': equipment,
+                        sv_db.insert({'equipment_name': equipment.name,
                                       'sample_number': sn,
                                       'data_type': (dt + '_mean'),
                                       'value': mean_val})
                               
 def raw_to_db_massfrac(db):
-    File = MassFrac().alldatafiles()
+    raw_in = MassFrac()
+    File = raw_in.alldatafiles()
     f = File[0]
     
-    raw_in = 'MassFrac'
-    
-    data = MassFrac().simple_data(f)
+    data = raw_in.simple_data(f)
     sample_numbers = data[0]
     data = data[1:]
     
@@ -110,13 +109,13 @@ def raw_to_db_massfrac(db):
     for d, d_n in zip(data, ingredients):
         for n, val in zip(sample_numbers, d):
             done = db.contains((Q.sample_number == n) &
-                              (Q.data_type == raw_in) &
+                              (Q.data_type == raw_in.name) &
                               (Q.ingredient == d_n)
                              )
 
             if not done:
                 entry = {'sample_number': int(n),
-                         'data_type': raw_in,
+                         'data_type': raw_in.name,
                          'ingredient': d_n,
                          'value': val
                         }
@@ -124,19 +123,18 @@ def raw_to_db_massfrac(db):
                 db.insert(entry)
     
 def raw_to_db_conecal(db):
-
-    equipment = 'ConeCal'
-    Files = ConeCal().alldatafiles()
+    equipment = ConeCal()
+    Files = equipment.alldatafiles()
 
     for f in Files:
-        sample_no = ConeCal().file_parse(f)
+        sample_no = equipment.file_parse(f)
 
         done = db.contains((Q.sample_number == int(sample_no)) &
-                          (Q.equipment_name == equipment)
+                          (Q.equipment_name == equipment.name)
                          )
 
         if not done:
-            params, param_vals = ConeCal().simple_data(f)
+            params, param_vals = equipment.simple_data(f)
 
             data_types = ['peak_HRR_kWpm2',
                           't_peak_HRR_s',
@@ -153,6 +151,6 @@ def raw_to_db_conecal(db):
 
             values = [param_vals[i] for i in dtype_indexes]
 
-            insert_update_db(db, False, equipment, sample_no, data_types, values)
+            insert_update_db(db, False, equipment.name, sample_no, data_types, values)
         else:
             print('skipped sample', sample_no)

@@ -17,9 +17,9 @@ def thermomat_sva(db, redo):
     """ Setting redo = True will repeat analysis even if it has been done for that sample already
     The data in the data base will only be updated if the Error is less """
     
-    equipment = 'thermomat'
+    equipment = Thermomat()
 
-    Files = Thermomat().alldatafiles()
+    Files = equipment.alldatafiles()
     
     t = tm()
 
@@ -29,10 +29,10 @@ def thermomat_sva(db, redo):
         split_tm = tm()
         
         # Parsing filename
-        sample_number = Thermomat().file_parse(f)
+        sample_number = equipment.file_parse(f)
         
         # Check if the relevant data exists and only do fit if necessary
-        done = db.contains((Q.equipment_name == 'thermomat')
+        done = db.contains((Q.equipment_name == equipment.name)
                           & (Q.sample_number == int(sample_number)))
 
         if done and not redo:
@@ -40,7 +40,7 @@ def thermomat_sva(db, redo):
             continue
 
         # Get data
-        time_data, conduct_data = Thermomat().simple_data(f)
+        time_data, conduct_data = equipment.simple_data(f)
 
         # Trim Data
         cut_point = find_cut_point(conduct_data)
@@ -94,7 +94,7 @@ def thermomat_sva(db, redo):
         values.append(stab_time)
 
         if not done:
-            insert_update_db(db, False, equipment, sample_number, data_types, values)
+            insert_update_db(db, False, equipment.name, sample_number, data_types, values)
         else:
             old_err = db.search(my_query(equipment, sample_number, 'int_of_abs_err'))[0]['value']
             if smallest_err < old_err:

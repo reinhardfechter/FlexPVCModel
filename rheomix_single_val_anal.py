@@ -8,19 +8,19 @@ from equipment import Rheomix
 
 def rheomix_sva(db):
     Q = Query()
-    equipment = 'rheomix'
+    equipment = Rheomix()
 
-    for f in Rheomix().alldatafiles():
-        sample_number = Rheomix().file_parse(f)
+    for f in equipment.alldatafiles():
+        sample_number = equipment.file_parse(f)
 
-        done = db.contains((Q.equipment_name == equipment)
+        done = db.contains((Q.equipment_name == equipment.name)
                           & (Q.sample_number == int(sample_number)))
 
         if done:
             print('Skipped Sample', sample_number)
             continue
 
-        time_data, torque_data = Rheomix().simple_data(f)
+        time_data, torque_data = equipment.simple_data(f)
 
         # Remove NaN from data
 
@@ -116,7 +116,7 @@ def rheomix_sva(db):
 
         values = [stab_time, final_deg_time, diff_long_short, rest_torque]
 
-        insert_update_db(db, False, equipment, sample_number, data_types,
+        insert_update_db(db, False, equipment.name, sample_number, data_types,
                          values)
 
         print('Processed Sample', sample_number)
