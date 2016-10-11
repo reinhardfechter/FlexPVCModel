@@ -6,6 +6,7 @@ import os
 import glob
 import pandas as pd
 from tinydb import Query, TinyDB
+from logging import debug
 
 with open('config.json') as f:
     config = json.load(f)
@@ -44,7 +45,7 @@ def access_db(db, from_list):
                 'Only_Top_Models']
     if from_list:
         db_name = db_names[db]
-        print('Accessed db:', db_name)
+        debug('Accessed db: %s', db_name)
     else:
         db_name = db
     

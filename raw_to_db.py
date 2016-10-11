@@ -3,6 +3,7 @@ from datahandling import insert_update_db, get_dtype_names, extractnames
 from tinydb import Query
 from numpy import mean
 from equipment import LOI, Colour, Tensile, MassFrac, ConeCal
+from logging import debug
 
 Q = Query()
 
@@ -153,4 +154,4 @@ def raw_to_db_conecal(db):
 
             insert_update_db(db, False, equipment.name, sample_no, data_types, values)
         else:
-            print('skipped sample', sample_no)
+            debug('skipped sample %s', sample_no)

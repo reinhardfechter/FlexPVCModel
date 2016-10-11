@@ -5,6 +5,7 @@ from datahandling import insert_update_db, my_query
 from tinydb import Query
 from numpy import where, argmax, argmin, trapz
 from equipment import MCC
+from logging import debug
 Q = Query()
 
 def MCC_sva(db):
@@ -26,7 +27,7 @@ def MCC_sva_one_f(db, f, equipment):
     done = db.count((Q.equipment_name == equipment.name) & (Q.sample_number == int(sample_number)))
     
     if (not double and done == 9) or (double and done == 18):
-        print('Skipped Sample', sample_number)
+        debug('Skipped Sample %s', sample_number)
         return
     
     time_data, temp_data, HRR_data = equipment.simple_data(f)

@@ -1,6 +1,7 @@
 from __future__ import print_function
 from tinydb import Query
 from datahandling import access_db
+from logging import debug
 
 Q = Query()
 
@@ -59,7 +60,7 @@ def gen_all_lin_model_inp():
     db = access_db(1, True)
     
     if db:
-        print('Already generated all linearised full model inputs')
+        debug('Already generated all linearised full model inputs')
         return
 
     sv_db = access_db(0, True)

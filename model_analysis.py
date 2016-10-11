@@ -6,6 +6,7 @@ from bisect import bisect
 from model_scoring_func import gen_terms_key
 import statsmodels.api as sm
 from heapq import nlargest
+from logging import debug
 Q = Query()
 
 def get_top_models(db, sr_db, equipment, data_type, no_models):
@@ -17,7 +18,7 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
         all_score_data = sr_db.search((Q.n_terms == no_of_terms))
 
         if len(all_score_data) == 0:
-            print('Scoring results not available for', equipment, data_type, 'with', no_of_terms, 'terms')
+            debug('Scoring results not available for %s %s with %d terms' % (equipment, data_type, no_of_terms))
             continue
 
         top_entries = nlargest(no_models, all_score_data,

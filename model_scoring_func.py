@@ -2,6 +2,7 @@ from __future__ import print_function
 from tinydb import Query
 from datahandling import my_query, access_db, extractnames
 from itertools import combinations
+from logging import debug, info
 
 try:
     from winsound import Beep
@@ -75,8 +76,8 @@ def gen_all_possible_models(no_terms, up_to):
         db = access_db('All_Poss_Mod_{}_Terms'.format(number_of_terms), False)
 
         if db:
-            print('________________')
-            print('Models with', number_of_terms, 'terms already done')
+            debug('________________')
+            debug('Models with %d terms already done', number_of_terms)
             continue
 
         for i in combinations(list(range(28)), number_of_terms):
@@ -92,11 +93,11 @@ def gen_all_possible_models(no_terms, up_to):
                 db.insert({'mc': i})
                 cnt += 1
 
-        print('________________')
-        print(cnt, 'models with', number_of_terms, 'terms entered into DB')
+        debug('________________')
+        debug('%d models with %d terms entered into DB', cnt, number_of_terms)
         req_time = time() - t
         minutes, seconds = divmod(req_time, 60)
-        print('Required Time:', round(minutes), 'min and', round(seconds, 2), 's')
+        info('Required Time: %d min and %d s', round(minutes), round(seconds, 2))
 
     # my_sound()
 
@@ -134,7 +135,7 @@ def get_data_req_to_score_model():
   
     all_model_codes = []
 
-    for i in range(4):
+    for i in range(1):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 

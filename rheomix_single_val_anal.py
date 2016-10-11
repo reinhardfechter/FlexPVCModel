@@ -5,6 +5,7 @@ from numpy import isnan, argmax, argmin, mean
 from pandas import ewma
 from tinydb import TinyDB, Query
 from equipment import Rheomix
+from logging import debug
 
 def rheomix_sva(db):
     Q = Query()
@@ -17,7 +18,7 @@ def rheomix_sva(db):
                           & (Q.sample_number == int(sample_number)))
 
         if done:
-            print('Skipped Sample', sample_number)
+            debug('Skipped Sample %s', sample_number)
             continue
 
         time_data, torque_data = equipment.simple_data(f)
@@ -119,4 +120,4 @@ def rheomix_sva(db):
         insert_update_db(db, False, equipment.name, sample_number, data_types,
                          values)
 
-        print('Processed Sample', sample_number)
+        debug('Processed Sample %s', sample_number)

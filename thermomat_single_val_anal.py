@@ -12,6 +12,7 @@ from numpy import trapz, log, abs
 import matplotlib.pyplot as plt
 from tinydb import Query
 from equipment import Thermomat
+from logging import debug, info
 
 def thermomat_sva(db, redo):
     """ Setting redo = True will repeat analysis even if it has been done for that sample already
@@ -36,7 +37,7 @@ def thermomat_sva(db, redo):
                           & (Q.sample_number == int(sample_number)))
 
         if done and not redo:
-            print('Skipped Fit', (j + 1))
+            debug('Skipped Fit %d', (j + 1))
             continue
 
         # Get data
@@ -99,11 +100,11 @@ def thermomat_sva(db, redo):
             old_err = db.search(my_query(equipment, sample_number, 'int_of_abs_err'))[0]['value']
             if smallest_err < old_err:
                 insert_update_db(db, True, equipment, sample_number, data_types, values)
-                print('Updated Sample Number', sample_number)
+                debug('Updated Sample Number %d', sample_number)
 
         split_tm = tm() - split_tm
-        print('Completed Fit', (j + 1), 'in', round(split_tm, 2), '(s)')
+        debug('Completed Fit %d in %f (s)', (j + 1), round(split_tm, 2))
 
     req_time = tm() - t
-    print('******************')
-    print('Time required (min) =', round(req_time/60.0, 2))
+    info('******************')
+    info('Time required (min) = %f', round(req_time/60.0, 2))
