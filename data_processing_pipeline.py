@@ -68,14 +68,16 @@ def all_poss_models():
     
     # Calling Client for multiprocessing
     rc = Client()
-    dview = rc[:]
+    v = rc.load_balanced_view()
+    v.block=False
    
     # gen_all_possible_models(1, True)
-    n_terms = [i+1 for i in range(8)]
-    shuffle(n_terms)
+    n_terms = [i+1 for i in range(4)]
     
     t = time()
-    dview.map_sync(gen_all_possible_models, n_terms)
+    
+    v.map_async(gen_all_possible_models, n_terms)
+    
     req_time = time() - t
     read_time(req_time)
     
@@ -85,24 +87,17 @@ def all_poss_models():
     
 def model_scoring():
     """Scores the models for all data_types iteratively"""
+    rc = Client()
+    v = rc[:]
     
-    sv_db, model, all_full_models, all_model_codes = get_data_req_to_score_model()
     t = time()
-    
+
     for_scoring = equip_dtypes_for_scoring()
 
-    for i in for_scoring:
-        equip_name, data_type = i
-        db = access_db('Score_results_'+ equip_name + '_' + data_type, False)
-        split_time = time()
-        score_models_per_data_type(db, sv_db, equip_name, data_type, model, all_full_models, all_model_codes)
-        info('Scored models for %s %s', equip_name, data_type)
-        split_time = time() - split_time
-        info('Split Time: %f s', round(split_time, 2))
+    v.map_sync(score_models_per_data_type, for_scoring)
 
     req_time = time() - t
-    minutes, seconds = divmod(req_time, 60)
-    info('Required Time: %d min and %f s', round(minutes), round(seconds, 2))
+    read_time(req_time)
     
 def do_not_score_list():
     do_not_score = ['int_of_abs_err',

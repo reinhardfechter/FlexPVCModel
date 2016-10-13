@@ -121,21 +121,13 @@ def score_1_model(db, model, model_code, Y, sample_numbers_Y, all_full_models,
 
     db.insert(entry)
 
-def score_models_per_data_type(db, sv_db, equipment, data_type, model, all_full_models, all_model_codes):
-    """ Fits all the models for a certain data type """
-    Y, sn_Y = gen_Y(sv_db, equipment, data_type)
-    
-    for i in all_model_codes:
-        model_code = i
-        score_1_model(db, model, model_code, Y, sn_Y, all_full_models)
-        
 def get_data_req_to_score_model():
     """ Calculates all the data required to run score_models_per_data_type
     that does not need to be recalculated in score_models_per_data_type """
   
     all_model_codes = []
 
-    for i in range(1):
+    for i in range(4):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 
@@ -145,3 +137,17 @@ def get_data_req_to_score_model():
     model = LinearRegression(fit_intercept=False)
     all_full_models = get_all_lin_model_inp()
     return sv_db, model, all_full_models, all_model_codes
+    
+def score_models_per_data_type(edt):
+    """ Fits all the models for a certain data type """
+    sv_db, model, all_full_models, all_model_codes = get_data_req_to_score_model()
+    
+    equipment, data_type = edt
+    
+    db = access_db('Score_results_'+ equipment + '_' + data_type, False)
+    
+    Y, sn_Y = gen_Y(sv_db, equipment, data_type)
+    
+    for i in all_model_codes:
+        model_code = i
+        score_1_model(db, model, model_code, Y, sn_Y, all_full_models)
