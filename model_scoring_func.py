@@ -55,7 +55,7 @@ def my_sound():
     Beep(450,300)
     Beep(300,300)
 
-def gen_all_possible_models(no_terms, up_to):
+def gen_all_possible_models(no_terms, up_to=False):
     """ Generates all the possible 2nd order Scheffe models
     up to a given number of model terms if up_to is True
     else only the number of terms """

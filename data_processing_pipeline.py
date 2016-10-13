@@ -9,6 +9,8 @@ from time import time
 from model_analysis import get_top_models
 from gen_model_inputs import gen_all_lin_model_inp
 from logging import info, basicConfig, DEBUG
+from ipyparallel import Client
+from random import shuffle
 
 def preprocessing():
     """ Runs all the functions that put raw data into the single values database """
@@ -55,13 +57,27 @@ def preprocessing():
 
     info('Data Preprocessing Complete')
     info('****************************')
-   
+
+# Calling Client for multiprocessing
+
+    
 def all_poss_models():
     info('****************************')
     info('Generate All Possible Models')
     info('')
+    
+    # Calling Client for multiprocessing
+    rc = Client()
+    dview = rc[:]
    
-    gen_all_possible_models(1, True)
+    # gen_all_possible_models(1, True)
+    n_terms = [i+1 for i in range(8)]
+    shuffle(n_terms)
+    
+    t = time()
+    dview.map_sync(gen_all_possible_models, n_terms)
+    req_time = time() - t
+    read_time(req_time)
     
     info('')
     info('Generate All Possible Models Complete')
@@ -129,6 +145,11 @@ def get_all_top_models():
         sr_db = access_db('Score_results_'+ en + '_' + dt, False)
 
         get_top_models(tm_db, sr_db, en, dt, 3)
+        
+def read_time(req_time):
+    hours, seconds_left = divmod(req_time, 3600)
+    minutes, seconds = divmod(seconds_left, 60)
+    info('Required Time: %d h, %d min and %d s' % (int(hours), int(minutes), int(seconds)))
 
 def full_pipeline():
     basicConfig(filename='full_pipeline.log', level=DEBUG)
@@ -145,10 +166,7 @@ def full_pipeline():
     info('******************')
     info('Full data processing pipeline complete')
     req_time = time() - t
-    hours, seconds_left = divmod(req_time, 3600)
-    minutes, seconds = divmod(seconds_left, 60)
-    info('Required Time: %d h, %d min and %d s' % (int(hours), int(minutes), int(round(seconds))))
-
+    read_time(req_time)
 
 if __name__ == "__main__":
     full_pipeline()
