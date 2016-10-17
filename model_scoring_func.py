@@ -3,6 +3,8 @@ from tinydb import Query
 from datahandling import my_query, access_db, extractnames
 from itertools import combinations
 from logging import debug, info
+from sklearn.decomposition import PCA
+from pca import pca_X
 
 try:
     from winsound import Beep
@@ -150,4 +152,23 @@ def score_models_per_data_type(edt):
     
     for i in all_model_codes:
         model_code = i
+        score_1_model(db, model, model_code, Y, sn_Y, all_full_models)
+        
+def score_model_per_comp(i):
+    X, df = pca_X()
+    my_pca = PCA(n_components=0.99)
+    my_pca.fit(X)
+    
+    X_trans = my_pca.transform(X)
+    sn_Y = list(df.index)
+    Ys = map(list, zip(*X_trans))
+    
+    comp_no = i + 1
+    Y = Ys[i]
+    
+    sv_db, model, all_full_models, all_model_codes = get_data_req_to_score_model()
+    
+    db = access_db(('Score_results_comp_{}'.format(comp_no)), False)
+    
+    for model_code in all_model_codes:
         score_1_model(db, model, model_code, Y, sn_Y, all_full_models)

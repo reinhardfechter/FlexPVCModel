@@ -4,7 +4,7 @@ from rheomix_single_val_anal import rheomix_sva
 from thermomat_single_val_anal import thermomat_sva
 from MCC_single_val_anal import MCC_sva
 from raw_to_db import raw_to_db, raw_to_db_conecal, raw_to_db_tensile, calc_tensile_mean, raw_to_db_massfrac
-from model_scoring_func import gen_all_possible_models, get_data_req_to_score_model, score_models_per_data_type
+from model_scoring_func import gen_all_possible_models, get_data_req_to_score_model, score_models_per_data_type, score_model_per_comp
 from time import time
 from model_analysis import get_top_models
 from gen_model_inputs import gen_all_lin_model_inp
@@ -98,6 +98,12 @@ def model_scoring():
 
     req_time = time() - t
     read_time(req_time)
+    
+def model_scoring_pca():
+    rc = Client()
+    v = rc[:]
+    
+    v.map_sync(score_model_per_comp, range(13))
     
 def do_not_score_list():
     do_not_score = ['int_of_abs_err',
