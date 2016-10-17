@@ -11,6 +11,7 @@ from gen_model_inputs import gen_all_lin_model_inp
 from logging import info, basicConfig, DEBUG
 from ipyparallel import Client
 from random import shuffle
+from pca import pca
 
 def preprocessing():
     """ Runs all the functions that put raw data into the single values database """
@@ -103,7 +104,9 @@ def model_scoring_pca():
     rc = Client()
     v = rc[:]
     
-    v.map_sync(score_model_per_comp, range(13))
+    n_comp = pca().n_components_
+    
+    v.map_sync(score_model_per_comp, range(n_comp))
     
 def do_not_score_list():
     do_not_score = ['int_of_abs_err',

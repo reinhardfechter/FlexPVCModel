@@ -4,6 +4,7 @@ from datahandling import access_db
 from tinydb import Query
 from sklearn.preprocessing import StandardScaler, Imputer
 from pandas import DataFrame, concat
+from sklearn.decomposition import PCA
 
 def pca_X(impute=False, exclude_inp=True):
     sv_db = access_db(0, True)
@@ -55,3 +56,9 @@ def pca_X(impute=False, exclude_inp=True):
 
     #      X    ,df of data used
     return X_std, use
+
+def pca():
+    X, df = pca_X()
+    my_pca = PCA(n_components=0.99)
+    my_pca.fit(X)
+    return my_pca

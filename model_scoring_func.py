@@ -4,7 +4,7 @@ from datahandling import my_query, access_db, extractnames
 from itertools import combinations
 from logging import debug, info
 from sklearn.decomposition import PCA
-from pca import pca_X
+from pca import pca_X, pca
 
 try:
     from winsound import Beep
