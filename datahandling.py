@@ -42,8 +42,7 @@ def access_db(db, from_list):
     If from_list is False then enter db name as first entry """
     db_names = ['Single_Value_Database',
                 'All_Lin_Full_Model_Inputs',
-                'Only_Top_Models',
-                'X_for_pca']
+                'Only_Top_Models']
     if from_list:
         db_name = db_names[db]
         debug('Accessed db: %s', db_name)
