@@ -134,14 +134,15 @@ def score_1_model(db, model, model_code, Y, sample_numbers_Y, all_full_models,
 def get_data_req_to_score_model():
     """ Calculates all the data required to run score_models_per_data_type
     that does not need to be recalculated in score_models_per_data_type """
+    Q = Query()
   
     all_model_codes = []
 
-    for i in range(7):
+    for i in range(4):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 
-        all_model_codes += extractnames(db.all(), 'mc')
+        all_model_codes += extractnames(db.search(Q.mc.exists()), 'mc')
 
     sv_db = access_db(0, True)
     model = LinearRegression(fit_intercept=False)

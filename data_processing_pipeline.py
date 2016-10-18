@@ -164,7 +164,7 @@ def read_time(req_time):
     minutes, seconds = divmod(seconds_left, 60)
     info('Required Time: %d h, %d min and %d s' % (int(hours), int(minutes), int(seconds)))
 
-def full_pipeline(do_pca):
+def full_pipeline(do_pca=False):
     basicConfig(filename='full_pipeline.log', level=DEBUG)
     
     t = time()
