@@ -94,15 +94,13 @@ def thermomat_sva(db, redo):
         data_types.append('stab_time_min')
         values.append(stab_time)
         
-        print(done)
         if not done:
             insert_update_db(db, False, equipment.name, sample_number, data_types, values)
         else:
-            print(db.search(my_query(equipment.name, sample_number, 'int_of_abs_err')))
             old_err = db.search(my_query(equipment.name, sample_number, 'int_of_abs_err'))[0]['value']
             if smallest_err < old_err:
                 insert_update_db(db, True, equipment.name, sample_number, data_types, values)
-                debug('Updated Sample Number %d', sample_number)
+                debug('Updated Sample Number %s', sample_number)
 
         split_tm = tm() - split_tm
         debug('Completed Fit %d in %f (s)', (j + 1), round(split_tm, 2))
