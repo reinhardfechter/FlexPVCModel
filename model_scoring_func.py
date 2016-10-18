@@ -4,7 +4,7 @@ from datahandling import my_query, access_db, extractnames
 from itertools import combinations
 from logging import debug, info
 from sklearn.decomposition import PCA
-from pca import pca_X, pca
+from pca import pca_X
 
 try:
     from winsound import Beep
@@ -77,10 +77,13 @@ def gen_all_possible_models(no_terms, up_to=False):
 
         db = access_db('All_Poss_Mod_{}_Terms'.format(number_of_terms), False)
 
-        if db:
-            debug('________________')
-            debug('Models with %d terms already done', number_of_terms)
+        if db.contains(Q.is_complete == 'yes'):
+            info('________________')
+            info('Models with %d terms already done', number_of_terms)
             continue
+        
+        n_models_done = len(db.all())
+        cnt_mod = 0
 
         for i in combinations(list(range(28)), number_of_terms):
             invalid = False
@@ -90,13 +93,18 @@ def gen_all_possible_models(no_terms, up_to=False):
                     key_2 = terms_key[j][1]
                     if key_1 not in i or key_2 not in i:
                         invalid = True
-
+            
             if not invalid:
+                cnt_mod += 1
+
+            if not invalid and cnt_mod > n_models_done:
                 db.insert({'mc': i})
                 cnt += 1
+                
+        db.insert({'is_complete': 'yes'})
 
-        debug('________________')
-        debug('%d models with %d terms entered into DB', cnt, number_of_terms)
+        info('________________')
+        info('%d models with %d terms entered into DB', cnt, number_of_terms)
         req_time = time() - t
         minutes, seconds = divmod(req_time, 60)
         info('Required Time: %d min and %d s', round(minutes), round(seconds, 2))
@@ -129,7 +137,7 @@ def get_data_req_to_score_model():
   
     all_model_codes = []
 
-    for i in range(4):
+    for i in range(7):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 
@@ -166,9 +174,13 @@ def score_model_per_comp(i):
     comp_no = i + 1
     Y = Ys[i]
     
+    # Treat pca as equipment and component as data_type
+    data_type = 'component_' + str(comp_no)
+    equipment = 'pca'
+    
     sv_db, model, all_full_models, all_model_codes = get_data_req_to_score_model()
     
-    db = access_db(('Score_results_comp_{}'.format(comp_no)), False)
+    db = access_db('Score_results_'+ equipment + '_' + data_type, False)
     
     for model_code in all_model_codes:
         score_1_model(db, model, model_code, Y, sn_Y, all_full_models)

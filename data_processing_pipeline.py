@@ -93,7 +93,7 @@ def model_scoring():
     
     t = time()
 
-    for_scoring = equip_dtypes_for_scoring()
+    for_scoring = equip_dtypes_for_scoring(False)
 
     v.map_sync(score_models_per_data_type, for_scoring)
 
@@ -119,9 +119,18 @@ def do_not_score_list():
                  ]
     return do_not_score
 
-def equip_dtypes_for_scoring():
+def equip_dtypes_for_scoring(do_pca):
     """ Puts all the data type names and corresponding equipment names that
     are going to be or have been scored in a list """
+    
+    if do_pca:
+        my_pca = pca()
+        n_comp = my_pca.n_components_
+        data_types = ['component_' + str(i + 1) for i in range(n_comp)]
+        equips = ['pca' for i in range(n_comp)]
+        for_scoring = [[i, j] for i, j in zip(equips, data_types)]
+        return for_scoring
+    
     sv_db = access_db(0, True)
     equip_names = get_equip_names(sv_db)
     
@@ -138,10 +147,10 @@ def equip_dtypes_for_scoring():
                 
     return for_scoring
 
-def get_all_top_models():
+def get_all_top_models(do_pca):
     """ Get all the top models for all the different data types which have
     been scored """
-    for_scoring = equip_dtypes_for_scoring()
+    for_scoring = equip_dtypes_for_scoring(do_pca)
     tm_db = access_db(2, True)
     
     for i in for_scoring:
@@ -155,7 +164,7 @@ def read_time(req_time):
     minutes, seconds = divmod(seconds_left, 60)
     info('Required Time: %d h, %d min and %d s' % (int(hours), int(minutes), int(seconds)))
 
-def full_pipeline():
+def full_pipeline(do_pca):
     basicConfig(filename='full_pipeline.log', level=DEBUG)
     
     t = time()
@@ -163,8 +172,13 @@ def full_pipeline():
     preprocessing()
     all_poss_models()
     gen_all_lin_model_inp()
-    model_scoring()
-    get_all_top_models()
+    
+    if do_pca:
+        model_scoring_pca()
+    else:
+        model_scoring()
+    
+    get_all_top_models(do_pca)
     
     info('')
     info('******************')
