@@ -13,6 +13,8 @@ from ipyparallel import Client
 from random import shuffle
 from pca import pca
 
+rc = Client()
+
 def preprocessing():
     """ Runs all the functions that put raw data into the single values database """
     sv_db = access_db(0, True)
@@ -68,12 +70,11 @@ def all_poss_models():
     info('')
     
     # Calling Client for multiprocessing
-    rc = Client()
+    # rc = Client()
     v = rc.load_balanced_view()
     v.block=False
    
-    # gen_all_possible_models(1, True)
-    n_terms = [i+1 for i in range(4)]
+    n_terms = [i+1 for i in range(28)]
     
     t = time()
     
@@ -88,7 +89,7 @@ def all_poss_models():
     
 def model_scoring():
     """Scores the models for all data_types iteratively"""
-    rc = Client()
+    # rc = Client()
     v = rc[:]
     
     t = time()
@@ -168,7 +169,7 @@ def full_pipeline(do_pca=False):
     basicConfig(filename='full_pipeline.log', level=DEBUG)
     
     t = time()
-    
+ 
     preprocessing()
     all_poss_models()
     gen_all_lin_model_inp()

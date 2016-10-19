@@ -138,7 +138,7 @@ def get_data_req_to_score_model():
   
     all_model_codes = []
 
-    for i in range(4):
+    for i in range(28):
         number_of_terms = i + 1
         db = access_db(('All_Poss_Mod_{}_Terms'.format(number_of_terms)), False)
 
