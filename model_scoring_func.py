@@ -57,7 +57,7 @@ def my_sound():
     Beep(450,300)
     Beep(300,300)
 
-def gen_all_possible_models(no_terms, up_to=False):
+def gen_all_possible_models(number_of_terms):
     """ Generates all the possible 2nd order Scheffe models
     up to a given number of model terms if up_to is True
     else only the number of terms """
@@ -66,50 +66,40 @@ def gen_all_possible_models(no_terms, up_to=False):
 
     cnt = 0
     t = time()
-    
-    if up_to:
-        cut = 0
-    else:
-        cut = no_terms - 1
 
-    for k in range(no_terms)[cut:]:
-        number_of_terms = k + 1
+    db = access_db('All_Poss_Mod_{}_Terms'.format(number_of_terms), False)
 
-        db = access_db('All_Poss_Mod_{}_Terms'.format(number_of_terms), False)
-
-        if db.contains(Q.is_complete == 'yes'):
-            info('________________')
-            info('Models with %d terms already done', number_of_terms)
-            continue
-        
-        n_models_done = len(db.all())
-        cnt_mod = 0
-
-        for i in combinations(list(range(28)), number_of_terms):
-            invalid = False
-            for j in i:
-                if j >= 7:
-                    key_1 = terms_key[j][0]
-                    key_2 = terms_key[j][1]
-                    if key_1 not in i or key_2 not in i:
-                        invalid = True
-            
-            if not invalid:
-                cnt_mod += 1
-
-            if not invalid and cnt_mod > n_models_done:
-                db.insert({'mc': i})
-                cnt += 1
-                
-        db.insert({'is_complete': 'yes'})
-
+    if db.contains(Q.is_complete == 'yes'):
         info('________________')
-        info('%d models with %d terms entered into DB', cnt, number_of_terms)
-        req_time = time() - t
-        minutes, seconds = divmod(req_time, 60)
-        info('Required Time: %d min and %d s', round(minutes), round(seconds, 2))
+        info('Models with %d terms already done', number_of_terms)
+        return
 
-    # my_sound()
+    n_models_done = len(db.all())
+    cnt_mod = 0
+
+    for i in combinations(list(range(28)), number_of_terms):
+        invalid = False
+        for j in i:
+            if j >= 7:
+                key_1 = terms_key[j][0]
+                key_2 = terms_key[j][1]
+                if key_1 not in i or key_2 not in i:
+                    invalid = True
+        
+        if not invalid:
+            cnt_mod += 1
+
+        if not invalid and cnt_mod > n_models_done:
+            db.insert({'mc': i})
+            cnt += 1
+
+    db.insert({'is_complete': 'yes'})
+
+    info('________________')
+    info('%d models with %d terms entered into DB', cnt, number_of_terms)
+    req_time = time() - t
+    minutes, seconds = divmod(req_time, 60)
+    info('Required Time: %d min and %d s', round(minutes), round(seconds, 2))
 
 def score_1_model(db, model, model_code, Y, sample_numbers_Y, all_full_models,
                   do_check=True):
