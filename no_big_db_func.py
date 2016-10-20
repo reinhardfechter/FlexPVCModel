@@ -85,7 +85,7 @@ def gen_and_score_mod(column):
                 if j >= 7:
                     key_1 = terms_key[j][0]
                     key_2 = terms_key[j][1]
-                    if key_1 not in i or key_2 not in i:
+                    if (key_1 not in i or key_2 not in i) and not invalid:
                         invalid = True
 
             if not invalid:
