@@ -12,6 +12,7 @@ from logging import info, basicConfig, DEBUG
 from ipyparallel import Client
 from random import shuffle
 from pca import pca
+from no_big_db_func import get_all_names, gen_and_score_mod
 
 rc = Client()
 
@@ -186,6 +187,13 @@ def full_pipeline(do_pca=False):
     info('Full data processing pipeline complete')
     req_time = time() - t
     read_time(req_time)
+    
+def run_no_big_db_parallel():
+    all_names = get_all_names()
+    
+    v = rc[:]
+
+    v.map_sync(gen_and_score_mod, all_names)    
 
 if __name__ == "__main__":
-    full_pipeline()
+    run_no_big_db_parallel()
