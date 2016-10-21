@@ -65,7 +65,7 @@ def gen_and_score_mod(column):
     
     top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
    
-    for i in range(10):
+    for i in range(6):
         number_of_terms = i + 1
 
         done = top_db.contains(Q.n_terms == number_of_terms)
@@ -85,8 +85,9 @@ def gen_and_score_mod(column):
                 if j >= 7:
                     key_1 = terms_key[j][0]
                     key_2 = terms_key[j][1]
-                    if (key_1 not in i or key_2 not in i) and not invalid:
+                    if key_1 not in i or key_2 not in i:
                         invalid = True
+                        break
 
             if not invalid:
                 # Generate X for certain model and Y
