@@ -65,7 +65,7 @@ def gen_and_score_mod(column):
     
     top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
    
-    for i in range(6):
+    for i in range(28):
         number_of_terms = i + 1
 
         done = top_db.contains(Q.n_terms == number_of_terms)
