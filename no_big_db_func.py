@@ -1,39 +1,30 @@
 from pandas import DataFrame
 from itertools import combinations
 from model_scoring_func import gen_terms_key, gen_X
-from datahandling import access_db
+from datahandling import access_db, get_msrmnts
 from gen_model_inputs import get_all_lin_model_inp
 from tinydb import Query
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import cross_val_score, ShuffleSplit
 from numpy import mean
-from ipyparallel import Client
-
-rc = Client()
-
-def get_msrmnts(sv_db, Q):
-    """Get all the measured data form the single value database"""
-    measurements = DataFrame(sv_db.search(Q.equipment_name.exists() & Q.data_type.exists()))
-    measurements['name'] = measurements.equipment_name + ' ' + measurements.data_type
-    # This will automatically average the different measurements which repeat
-    measurements = measurements.pivot_table(index='sample_number', columns='name', values='value')
-
-    measurements = measurements.drop([u'tensile E_t_MPa_mean', 
-                                      u'tensile epsilon_break_%_mean', 
-                                      u'tensile epsilon_max_%_mean',
-                                      u'tensile sigma_break_MPa_mean',
-                                      u'tensile sigma_max_MPa_mean',
-                                      u'thermomat int_of_abs_err',
-                                      u'ConeCal C-factor',
-                                      u'tensile epsilon_max_%',
-                                      u'tensile sigma_max_MPa',
-                                      u'rheomix diff_long_short_stab_min'
-                                     ], axis=1)
-                                     
-    return measurements
-    
-def get_Ys(measurements):
+from pca import pca_X
+from sklearn.decomposition import PCA
+ 
+def get_Ys(measurements, do_pca=True):
     """Scale the measurements for scoring"""
+    
+    if do_pca:
+        X, df = pca_X()
+        my_pca = PCA(n_components=0.99)
+        my_pca.fit(X)
+        
+        X_trans = my_pca.transform(X)
+        sn_Y = list(df.index)
+        Ys = map(list, zip(*X_trans))
+        names = ['PCA Comp_' + str(i + 1) for i in range(my_pca.n_components_)]
+        Ys = DataFrame(X_trans, index=sn_Y, columns=names)
+        return Ys
+    
     Ys = measurements
 
     Ys = Ys - Ys.min()
@@ -55,7 +46,7 @@ def get_all_names():
     return Ys.columns
     
 def gen_and_score_mod(column):
-    """Generates all models and and scores the data,
+    """Generates all models and scores the data without storing all the possible models,
     no big tinydb's are used"""
     Y = Ys[column].dropna().values
     sn_Y = Ys[column].dropna().index
@@ -65,13 +56,12 @@ def gen_and_score_mod(column):
     
     top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
    
-    for i in range(28):
+    for i in range(11):
         number_of_terms = i + 1
 
         done = top_db.contains(Q.n_terms == number_of_terms)
     
         if done:
-            print('Skipped', column, 'with', number_of_terms, 'terms')
             continue
 
         terms_key = gen_terms_key()

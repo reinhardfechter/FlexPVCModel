@@ -68,6 +68,7 @@ def model_stats(X, Y):
     return params, conf_int, r_sqrd, p_vals, t_vals
     
 def get_select_models(names):
+    """ Selects the model that is 'best' from the top models at each number of model terms """
     model_select_db = access_db(3, True)
     
     for i in names:

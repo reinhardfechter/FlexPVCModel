@@ -4,9 +4,11 @@ from __future__ import print_function
 import json
 import os
 import glob
-import pandas as pd
+from pandas import DataFrame
 from tinydb import Query, TinyDB
 from logging import debug
+
+Q = Query()
 
 with open('config.json') as f:
     config = json.load(f)
@@ -17,9 +19,9 @@ with open('config.json') as f:
     assert os.path.exists(dbpath)
 
 def my_query(equipment, sample_number, data_type):
-    my_q = ((Query().equipment_name == equipment) &
-            (Query().sample_number == int(sample_number)) &
-            (Query().data_type == data_type))
+    my_q = ((Q.equipment_name == equipment) &
+            (Q.sample_number == int(sample_number)) &
+            (Q.data_type == data_type))
     return my_q
 
 def insert_update_db(db, update, equipment, sample_number, names, values):
@@ -72,3 +74,24 @@ def extractnames(dictlist, *names):
         return result[0]
     else:
         return result
+        
+def get_msrmnts(sv_db, Q):
+    """Get all the measured data form the single value database"""
+    measurements = DataFrame(sv_db.search(Q.equipment_name.exists() & Q.data_type.exists()))
+    measurements['name'] = measurements.equipment_name + ' ' + measurements.data_type
+    # This will automatically average the different measurements which repeat
+    measurements = measurements.pivot_table(index='sample_number', columns='name', values='value')
+
+    measurements = measurements.drop([u'tensile E_t_MPa_mean', 
+                                      u'tensile epsilon_break_%_mean', 
+                                      u'tensile epsilon_max_%_mean',
+                                      u'tensile sigma_break_MPa_mean',
+                                      u'tensile sigma_max_MPa_mean',
+                                      u'thermomat int_of_abs_err',
+                                      u'ConeCal C-factor',
+                                      u'tensile epsilon_max_%',
+                                      u'tensile sigma_max_MPa',
+                                      u'rheomix diff_long_short_stab_min'
+                                     ], axis=1)
+                                     
+    return measurements

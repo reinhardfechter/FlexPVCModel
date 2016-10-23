@@ -5,6 +5,7 @@ from tinydb import Query
 from sklearn.preprocessing import StandardScaler, Imputer
 from pandas import DataFrame, concat
 from sklearn.decomposition import PCA
+from datahandling import get_msrmnts
 
 def pca_X(impute=False, exclude_inp=True):
     sv_db = access_db(0, True)
@@ -17,19 +18,7 @@ def pca_X(impute=False, exclude_inp=True):
     compositions['name'] = compositions.data_type + ' ' + compositions.ingredient
     compositions = compositions[['name', 'sample_number', 'value']].pivot(index='sample_number', columns='name', values='value')
 
-    measurements = DataFrame(sv_db.search(Q.equipment_name.exists() & Q.data_type.exists()))
-    measurements['name'] = measurements.equipment_name + ' ' + measurements.data_type
-    # This will automatically average the different measurements which repeat
-    measurements = measurements.pivot_table(index='sample_number', columns='name', values='value')
-
-    measurements = measurements.drop([u'tensile E_t_MPa_mean', 
-                                      u'tensile epsilon_break_%_mean', 
-                                      u'tensile epsilon_max_%_mean',
-                                      u'tensile sigma_break_MPa_mean',
-                                      u'tensile sigma_max_MPa_mean',
-                                      u'thermomat int_of_abs_err',
-                                      u'ConeCal C-factor'
-                                     ], axis=1)
+    measurements = get_msrmnts(sv_db, Q)
 
     alldata = concat([compositions, measurements], axis=1)
 
