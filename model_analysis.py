@@ -1,13 +1,15 @@
 from __future__ import print_function
-from datahandling import access_db, extractnames
+from datahandling import access_db, extractnames, get_msrmnts
 from tinydb import Query
 from numpy import mean, std, insert
 from bisect import bisect
-from model_scoring_func import gen_terms_key
+from model_scoring_func import gen_terms_key, gen_X
 import statsmodels.api as sm
 from heapq import nlargest
 from logging import debug
 from pandas import DataFrame
+from no_big_db_func import get_Ys
+from gen_model_inputs import get_all_lin_model_inp
 Q = Query()
 
 def get_top_models(db, sr_db, equipment, data_type, no_models):
@@ -67,12 +69,19 @@ def model_stats(X, Y):
     
     return params, conf_int, r_sqrd, p_vals, t_vals
     
-def get_select_models(names):
+def get_select_models():
     """ Selects the model that is 'best' from the top models at each number of model terms """
     model_select_db = access_db(3, True)
     
-    for i in names:
-        equip, d_type = i.split(' ')
+    sv_db = access_db(0, True)
+    msrmnts = get_msrmnts(sv_db, Q)
+    Ys = get_Ys(msrmnts)
+    all_full_input = get_all_lin_model_inp()
+    
+    names = Ys.columns
+    
+    for column in names:
+        equip, d_type = column.split(' ')
 
         top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
                    
@@ -95,6 +104,12 @@ def get_select_models(names):
                 
         ind = scores.index(select_score)
         select_model = mcodes[ind]
+        
+        Y = Ys[column].dropna().values
+        sn_Y = Ys[column].dropna().index
+        X = gen_X(sn_Y, all_full_input, select_model)
+        
+        params, conf_int, r_sqrd, p_vals, t_vals = model_stats(X, Y)
 
         my_Q = ((Q.equipment_name == equip) &
                 (Q.data_type == d_type))
@@ -103,14 +118,22 @@ def get_select_models(names):
 
         if done:
             model_select_db.update({'select_score': select_score,
-                                    'select_mcode': select_model
+                                    'select_mcode': select_model,
+                                    'model_params': list(params),
+                                    'r_sqrd': r_sqrd,
+                                    'p_vals': list(p_vals),
+                                    't_vals': list(t_vals)
                                    }, my_Q)
             continue
 
         entry = {'equipment_name': equip,
                  'data_type': d_type,
                  'select_score': select_score,
-                 'select_mcode': select_model
+                 'select_mcode': select_model,
+                 'model_params': list(params),
+                 'r_sqrd': r_sqrd,
+                 'p_vals': list(p_vals),
+                 't_vals': list(t_vals)
                 }
 
         model_select_db.insert(entry)

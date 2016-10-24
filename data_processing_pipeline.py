@@ -14,7 +14,6 @@ from random import shuffle
 from pca import pca
 from no_big_db_func import get_all_names, gen_and_score_mod
 
-
 rc = Client()
 
 def preprocessing():
@@ -183,7 +182,7 @@ def full_pipeline():#do_pca=False):
     gen_all_lin_model_inp()
     
     run_no_big_db_parallel()
-    select_models()
+    get_select_models()
     
     # if do_pca:
         # model_scoring_pca()
@@ -203,11 +202,7 @@ def run_no_big_db_parallel():
     
     v = rc[:]
 
-    v.map_sync(gen_and_score_mod, all_names)
-
-def select_models():
-    names = get_all_names()
-    get_select_models(names)    
+    v.map_sync(gen_and_score_mod, all_names)    
 
 if __name__ == "__main__":
     full_pipeline()
