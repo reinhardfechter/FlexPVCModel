@@ -9,8 +9,9 @@ from sklearn.cross_validation import cross_val_score, ShuffleSplit
 from numpy import mean
 from pca import pca_X
 from sklearn.decomposition import PCA
+Q = Query()
  
-def get_Ys(measurements, do_pca=True):
+def get_Ys(measurements, do_pca=False):
     """Scale the measurements for scoring"""
     
     if do_pca:
@@ -31,23 +32,22 @@ def get_Ys(measurements, do_pca=True):
     Ys = Ys/Ys.max()
     return Ys*2 - 1
 
-Q = Query()
-
-sv_db = access_db(0, True)
-
-msrmnts = get_msrmnts(sv_db, Q)
-
-Ys = get_Ys(msrmnts)
-
-all_full_input = get_all_lin_model_inp()
-model_obj = LinearRegression(fit_intercept=False)
-
 def get_all_names():
+    sv_db = access_db(0, True)
+    msrmnts = get_msrmnts(sv_db, Q)
+    Ys = get_Ys(msrmnts)
     return Ys.columns
     
 def gen_and_score_mod(column):
     """Generates all models and scores the data without storing all the possible models,
     no big tinydb's are used"""
+    
+    sv_db = access_db(0, True)
+    msrmnts = get_msrmnts(sv_db, Q)
+    Ys = get_Ys(msrmnts)
+    all_full_input = get_all_lin_model_inp()
+    model_obj = LinearRegression(fit_intercept=False)
+    
     Y = Ys[column].dropna().values
     sn_Y = Ys[column].dropna().index
     my_cv = ShuffleSplit(len(Y), n_iter=3, test_size=0.333, random_state=0)
@@ -56,7 +56,7 @@ def gen_and_score_mod(column):
     
     top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
    
-    for i in range(11):
+    for i in range(1):
         number_of_terms = i + 1
 
         done = top_db.contains(Q.n_terms == number_of_terms)

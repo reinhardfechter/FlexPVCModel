@@ -6,13 +6,14 @@ from MCC_single_val_anal import MCC_sva
 from raw_to_db import raw_to_db, raw_to_db_conecal, raw_to_db_tensile, calc_tensile_mean, raw_to_db_massfrac
 from model_scoring_func import gen_all_possible_models, get_data_req_to_score_model, score_models_per_data_type, score_model_per_comp
 from time import time
-from model_analysis import get_top_models
+from model_analysis import get_top_models, get_select_models
 from gen_model_inputs import gen_all_lin_model_inp
 from logging import info, basicConfig, DEBUG
 from ipyparallel import Client
 from random import shuffle
 from pca import pca
 from no_big_db_func import get_all_names, gen_and_score_mod
+
 
 rc = Client()
 
@@ -166,21 +167,30 @@ def read_time(req_time):
     minutes, seconds = divmod(seconds_left, 60)
     info('Required Time: %d h, %d min and %d s' % (int(hours), int(minutes), int(seconds)))
 
-def full_pipeline(do_pca=False):
+def full_pipeline():#do_pca=False):
+    """ Runs all code to get to top models, commented out portions
+    are where the 'old' method of storing all possible models was used.
+    The functions used are to run the 'new' method where all possible models 
+    are generated and scored immediately instead of being stored to avoid big
+    tinydbs which are slow. Note that to do PCA or not currently has to be manually
+    switched in no_big_db_func.py """
     basicConfig(filename='full_pipeline.log', level=DEBUG)
     
     t = time()
  
     preprocessing()
-    all_poss_models()
+    # all_poss_models()
     gen_all_lin_model_inp()
     
-    if do_pca:
-        model_scoring_pca()
-    else:
-        model_scoring()
+    run_no_big_db_parallel()
+    select_models()
     
-    get_all_top_models(do_pca)
+    # if do_pca:
+        # model_scoring_pca()
+    # else:
+        # model_scoring()
+    
+    # get_all_top_models(do_pca)
     
     info('')
     info('******************')
@@ -193,7 +203,11 @@ def run_no_big_db_parallel():
     
     v = rc[:]
 
-    v.map_sync(gen_and_score_mod, all_names)    
+    v.map_sync(gen_and_score_mod, all_names)
+
+def select_models():
+    names = get_all_names()
+    get_select_models(names)    
 
 if __name__ == "__main__":
-    run_no_big_db_parallel()
+    full_pipeline()
