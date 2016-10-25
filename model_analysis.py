@@ -47,6 +47,7 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
             db.update({'top_scores': top_scores, 'top_mcodes': top_mcodes}, my_Q)
           
 def translate_model_code(model_code):
+    model_code = model_code[:]
     terms_key = gen_terms_key()
     ingredients = ['PVC', 'filler', 'FR', 'stabiliser', 'DINP', 'LDH', 'spherical_filler']
 
@@ -56,8 +57,8 @@ def translate_model_code(model_code):
         else:
             model_code[i] = '*'.join([ingredients[c] for c in terms_key[mc]])
             
-    mc_translated = ' + '.join(model_code)
-    return mc_translated
+    # mc_translated = ' + '.join(model_code)
+    return model_code
 
 def model_stats(X, Y):
     results = sm.OLS(Y, X).fit()
@@ -73,9 +74,7 @@ def get_select_models():
     """ Selects the model that is 'best' from the top models at each number of model terms """
     model_select_db = access_db(3, True)
     
-    sv_db = access_db(0, True)
-    msrmnts = get_msrmnts(sv_db, Q)
-    Ys = get_Ys(msrmnts)
+    Ys = get_Ys()
     all_full_input = get_all_lin_model_inp()
     
     names = Ys.columns

@@ -11,8 +11,11 @@ from pca import pca_X
 from sklearn.decomposition import PCA
 Q = Query()
  
-def get_Ys(measurements, do_pca=False):
-    """Scale the measurements for scoring"""
+def get_Ys(do_pca=False):
+    """Get Ys as DataFrame for fitting, if no PCA measurements are scaled from -1 to 1"""
+    
+    sv_db = access_db(0, True)
+    measurements = get_msrmnts(sv_db, Q)
     
     if do_pca:
         X, df = pca_X()
@@ -33,18 +36,14 @@ def get_Ys(measurements, do_pca=False):
     return Ys*2 - 1
 
 def get_all_names():
-    sv_db = access_db(0, True)
-    msrmnts = get_msrmnts(sv_db, Q)
-    Ys = get_Ys(msrmnts)
+    Ys = get_Ys()
     return Ys.columns
     
 def gen_and_score_mod(column):
     """Generates all models and scores the data without storing all the possible models,
     no big tinydb's are used"""
     
-    sv_db = access_db(0, True)
-    msrmnts = get_msrmnts(sv_db, Q)
-    Ys = get_Ys(msrmnts)
+    Ys = get_Ys()
     all_full_input = get_all_lin_model_inp()
     model_obj = LinearRegression(fit_intercept=False)
     
