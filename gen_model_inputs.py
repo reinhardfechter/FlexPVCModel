@@ -32,7 +32,8 @@ def all_formulations(db):
     
 def full_model_lin(formulation):
     """ Include 2nd order Scheffe model terms """
-    fml = formulation
+    formulation = formulation[:]
+    fml = list(formulation)
         
     for j, m_fr in enumerate(formulation):
         for k in range(j+1, 7):
