@@ -5,6 +5,7 @@ from pandas import DataFrame, concat, Series
 from numpy import matrix, array
 from gen_model_inputs import full_model_lin
 from random import uniform
+from scipy.optimize import minimize
 Q = Query()
 
 def constraints_list():
@@ -156,6 +157,7 @@ def property_results(x, used_con, con_limits, show_used_only):
     df['constr_limit'] = [con_limits[used_con.index(i)] if i in used_con else None for i in df.index]
     
     return df.style.applymap(highlight_true)
+    # return df
     
 def rand_x0():
     """ Generates random formulation within bounds of 
@@ -179,3 +181,21 @@ def rand_x0():
 def formulation_result(x):
     ingredients = ['PVC', 'filler', 'FR', 'stabiliser', 'DINP', 'LDH', 'spherical_filler']
     return DataFrame([round(i, 4)*100 for i in x], index=ingredients, columns=['mass_frac_%'])
+    
+def opt_with_starts(ingr_cost, bnds, cons, starts=5):
+
+    best_fun_val = 10000.0
+
+    for i in range(starts):
+        x0 = rand_x0()
+        
+        res = minimize(obj_fun, x0, args=(ingr_cost), jac=True, bounds=bnds, constraints=cons)
+        
+        best_fun_val = min([best_fun_val, res.fun])
+        print(res.fun)
+        print(res.message)
+        
+        if res.fun == best_fun_val:
+            best_res = res
+    
+    return best_res

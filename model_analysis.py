@@ -49,7 +49,7 @@ def get_top_models(db, sr_db, equipment, data_type, no_models):
 def translate_model_code(model_code):
     model_code = model_code[:]
     terms_key = gen_terms_key()
-    ingredients = ['PVC', 'filler', 'FR', 'stabiliser', 'DINP', 'LDH', 'spherical_filler']
+    ingredients = ['PVC', 'Filler', 'FR', 'Stabiliser', 'DINP', 'LDH', 'Sph. Filler']
 
     for i, mc in enumerate(model_code):
         if mc <= 6:
@@ -137,3 +137,15 @@ def get_select_models():
 
         model_select_db.insert(entry)
     
+def resp_var_val(x, mcode, mparams):
+    terms_key = gen_terms_key()
+
+    val = 0
+    for mc, mp in zip(mcode, mparams):
+        tk = terms_key[mc]
+        if mc <= 6:
+            val += mp*x[mc]
+        else:
+            val += mp*x[tk[0]]*x[tk[1]]
+            
+    return val
