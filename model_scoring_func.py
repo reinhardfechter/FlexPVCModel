@@ -1,10 +1,7 @@
 from __future__ import print_function
 from tinydb import Query
-from datahandling import my_query, access_db, extractnames
+from datahandling import access_db, extractnames, access_file, get_msrmnts
 from itertools import combinations
-from logging import debug, info
-from sklearn.decomposition import PCA
-from pca import pca_X
 
 try:
     from winsound import Beep
@@ -12,24 +9,15 @@ except ImportError:
     def Beep(a, b):
         pass
 
-from time import time
 from sklearn.cross_validation import cross_val_score, ShuffleSplit
-from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from gen_model_inputs import get_all_lin_model_inp
+import cPickle
+from pandas import DataFrame
 from numpy import mean
+from pca import pca_X
+from sklearn.decomposition import PCA
 Q = Query()
-
-def gen_Y(db, equipment, data_type):
-    """ Generates Y to for one equipment and data_type """
-    data = db.search((Q.equipment_name == equipment) &
-                     (Q.data_type == data_type))
-
-    Y, sample_nos_Y = extractnames(data, 'value', 'sample_number')
-
-    Y_scaled = [(2*(y - min(Y))/(max(Y) - min(Y)) - 1) for y in Y]
-    
-    return Y_scaled, sample_nos_Y
 
 def gen_X(sample_numbers_Y, all_full_models, model_select_code):
     """ Generates X to score one model for one equipment and data_type """
@@ -64,62 +52,32 @@ def gen_all_possible_models(number_of_terms):
 
     terms_key = gen_terms_key()
 
-    cnt = 0
-    t = time()
-
-    db = access_db('All_Poss_Mod_{}_Terms'.format(number_of_terms), False)
-
-    if db.contains(Q.is_complete == 'yes'):
-        info('________________')
-        info('Models with %d terms already done', number_of_terms)
-        return
-
-    n_models_done = len(db.all())
-    cnt_mod = 0
-
-    for i in combinations(list(range(28)), number_of_terms):
-        invalid = False
-        for j in i:
-            if j >= 7:
-                key_1 = terms_key[j][0]
-                key_2 = terms_key[j][1]
-                if key_1 not in i or key_2 not in i:
-                    invalid = True
-        
-        if not invalid:
-            cnt_mod += 1
-
-        if not invalid and cnt_mod > n_models_done:
-            db.insert({'mc': i})
-            cnt += 1
-
-    db.insert({'is_complete': 'yes'})
-
-    info('________________')
-    info('%d models with %d terms entered into DB', cnt, number_of_terms)
-    req_time = time() - t
-    minutes, seconds = divmod(req_time, 60)
-    info('Required Time: %d min and %d s', round(minutes), round(seconds, 2))
-
-def score_1_model(db, model, model_code, Y, sample_numbers_Y, all_full_models,
-                  do_check=True):
-    """ Scores one model to given Y and enters into scored models db """
+    f_name = 'All_Poss_Mod_{}_Terms'.format(number_of_terms)
     
-    if do_check:
-        done = db.contains((Q.model_code == model_code))
-        if done:
-            return
+    try:
+        f_obj = access_file(f_name, write=False)
+        f_obj.close()
+    except:
+        all_mcodes = []
+        for i in combinations(list(range(28)), number_of_terms):
 
-    X = gen_X(sample_numbers_Y, all_full_models, model_code)
-    my_cv = ShuffleSplit(len(Y), n_iter=3, test_size=0.333, random_state=0)
-    scores = cross_val_score(model, X, Y, cv=my_cv)
+            invalid = False
 
-    entry = {'model_code': model_code,
-             'n_terms': len(model_code),
-             'kfold_score': mean(list(scores))
-            }
+            for j in i:
+                if j >= 7:
+                    key_1 = terms_key[j][0]
+                    key_2 = terms_key[j][1]
+                    if key_1 not in i or key_2 not in i:
+                        invalid = True
+                        break
 
-    db.insert(entry)
+            if not invalid:
+                all_mcodes.append(list(i))
+
+
+        f_obj = access_file(f_name)
+        cPickle.dump(all_mcodes, f_obj)
+        f_obj.close()
 
 def get_data_req_to_score_model():
     """ Calculates all the data required to run score_models_per_data_type
@@ -139,39 +97,80 @@ def get_data_req_to_score_model():
     all_full_models = get_all_lin_model_inp()
     return sv_db, model, all_full_models, all_model_codes
     
-def score_models_per_data_type(edt):
-    """ Fits all the models for a certain data type """
-    sv_db, model, all_full_models, all_model_codes = get_data_req_to_score_model()
+def get_Ys(do_pca=False):
+    """Get Ys as DataFrame for fitting, if no PCA measurements are scaled from -1 to 1"""
     
-    equipment, data_type = edt
+    sv_db = access_db(0, True)
+    measurements = get_msrmnts(sv_db, Q)
     
-    db = access_db('Score_results_'+ equipment + '_' + data_type, False)
-    
-    Y, sn_Y = gen_Y(sv_db, equipment, data_type)
-    
-    for i in all_model_codes:
-        model_code = i
-        score_1_model(db, model, model_code, Y, sn_Y, all_full_models)
+    if do_pca:
+        X, df = pca_X()
+        my_pca = PCA(n_components=0.99)
+        my_pca.fit(X)
         
-def score_model_per_comp(i):
-    X, df = pca_X()
-    my_pca = PCA(n_components=0.99)
-    my_pca.fit(X)
+        X_trans = my_pca.transform(X)
+        sn_Y = list(df.index)
+        Ys = map(list, zip(*X_trans))
+        names = ['PCA Comp_' + str(i + 1) for i in range(my_pca.n_components_)]
+        Ys = DataFrame(X_trans, index=sn_Y, columns=names)
+        return Ys
     
-    X_trans = my_pca.transform(X)
-    sn_Y = list(df.index)
-    Ys = map(list, zip(*X_trans))
+    Ys = measurements
+
+    Ys = Ys - Ys.min()
+    Ys = Ys/Ys.max()
+    return Ys*2 - 1
+
+def get_all_names():
+    Ys = get_Ys()
+    return Ys.columns
+
+def score_models(column):
+    """Generates all models and scores the data without storing all the possible models,
+    no big tinydb's are used"""
     
-    comp_no = i + 1
-    Y = Ys[i]
+    Ys = get_Ys()
+    all_full_input = get_all_lin_model_inp()
+    model_obj = LinearRegression(fit_intercept=False)
     
-    # Treat pca as equipment and component as data_type
-    data_type = 'component_' + str(comp_no)
-    equipment = 'pca'
+    Y = Ys[column].dropna().values
+    sn_Y = Ys[column].dropna().index
+    my_cv = ShuffleSplit(len(Y), n_iter=3, test_size=0.333, random_state=0)
     
-    sv_db, model, all_full_models, all_model_codes = get_data_req_to_score_model()
+    equip, d_type = column.split(' ')
     
-    db = access_db('Score_results_'+ equipment + '_' + data_type, False)
+    top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
+   
+    for i in range(4):
+        number_of_terms = i + 1
+
+        done = top_db.contains(Q.n_terms == number_of_terms)
     
-    for model_code in all_model_codes:
-        score_1_model(db, model, model_code, Y, sn_Y, all_full_models)
+        if done:
+            continue
+           
+        f_name = 'All_Poss_Mod_{}_Terms'.format(number_of_terms)
+        f_obj = access_file(f_name, write=False)
+        mcodes = cPickle.load(f_obj)
+        f_obj.close()
+
+        top_score = -10000.0
+        for i in mcodes:
+            # Generate X for certain model and Y
+            X = gen_X(sn_Y, all_full_input, i)
+            scores = cross_val_score(model_obj, X, Y, cv=my_cv)
+            score = mean(scores)
+            
+            top_score = max(score, top_score)
+            
+            if top_score == score:
+                top_mcode = list(i)
+        
+        entry = {'equipment_name': equip,
+                 'data_type': d_type,
+                 'n_terms': number_of_terms,
+                 'top_score': top_score,
+                 'top_mcode': top_mcode
+                }
+        
+        top_db.insert(entry)    

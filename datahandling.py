@@ -95,3 +95,8 @@ def get_msrmnts(sv_db, Q):
                                      ], axis=1)
                                      
     return measurements
+
+def access_file(f_name, write=True):
+    if not write:
+        return open(os.path.join(dbpath, f_name), 'r')
+    return open(os.path.join(dbpath, f_name), 'wb')
