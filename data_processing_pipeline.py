@@ -4,9 +4,9 @@ from rheomix_single_val_anal import rheomix_sva
 from thermomat_single_val_anal import thermomat_sva
 from MCC_single_val_anal import MCC_sva
 from raw_to_db import raw_to_db, raw_to_db_conecal, raw_to_db_tensile, calc_tensile_mean, raw_to_db_massfrac
-from model_scoring_func import gen_all_possible_models, get_data_req_to_score_model, score_models_per_data_type, score_model_per_comp
+from model_scoring_func import gen_all_possible_models, get_all_names, score_models
 from time import time
-from model_analysis import get_top_models, get_select_models
+from model_analysis import get_select_models
 from gen_model_inputs import gen_all_lin_model_inp
 from logging import info, basicConfig, DEBUG
 from ipyparallel import Client
@@ -95,101 +95,30 @@ def model_scoring():
     
     t = time()
 
-    for_scoring = equip_dtypes_for_scoring(False)
+    for_scoring = get_all_names()
 
-    v.map_sync(score_models_per_data_type, for_scoring)
+    v.map_sync(score_models, for_scoring)
 
     req_time = time() - t
     read_time(req_time)
-    
-def model_scoring_pca():
-    rc = Client()
-    v = rc[:]
-    
-    n_comp = pca().n_components_
-    
-    v.map_sync(score_model_per_comp, range(n_comp))
-    
-def do_not_score_list():
-    do_not_score = ['int_of_abs_err',
-                  'E_t_MPa',
-                  'epsilon_max_%',
-                  'epsilon_break_%',
-                  'sigma_max_MPa',
-                  'sigma_break_MPa',
-                  'C-factor'
-                 ]
-    return do_not_score
-
-def equip_dtypes_for_scoring(do_pca):
-    """ Puts all the data type names and corresponding equipment names that
-    are going to be or have been scored in a list """
-    
-    if do_pca:
-        my_pca = pca()
-        n_comp = my_pca.n_components_
-        data_types = ['component_' + str(i + 1) for i in range(n_comp)]
-        equips = ['pca' for i in range(n_comp)]
-        for_scoring = [[i, j] for i, j in zip(equips, data_types)]
-        return for_scoring
-    
-    sv_db = access_db(0, True)
-    equip_names = get_equip_names(sv_db)
-    
-    dnt_score = do_not_score_list()
-
-    for_scoring = []
-    for en in equip_names:
-        data_types = get_dtype_names(sv_db, en)
-
-        for dt in data_types:
-            if dt not in dnt_score:
-                en_dt = [en, dt]
-                for_scoring.append(en_dt)
-                
-    return for_scoring
-
-def get_all_top_models(do_pca):
-    """ Get all the top models for all the different data types which have
-    been scored """
-    for_scoring = equip_dtypes_for_scoring(do_pca)
-    tm_db = access_db(2, True)
-    
-    for i in for_scoring:
-        en, dt = i
-        sr_db = access_db('Score_results_'+ en + '_' + dt, False)
-
-        get_top_models(tm_db, sr_db, en, dt, 3)
         
 def read_time(req_time):
     hours, seconds_left = divmod(req_time, 3600)
     minutes, seconds = divmod(seconds_left, 60)
     info('Required Time: %d h, %d min and %d s' % (int(hours), int(minutes), int(seconds)))
 
-def full_pipeline():#do_pca=False):
-    """ Runs all code to get to top models, commented out portions
-    are where the 'old' method of storing all possible models was used.
-    The functions used are to run the 'new' method where all possible models 
-    are generated and scored immediately instead of being stored to avoid big
-    tinydbs which are slow. Note that to do PCA or not currently has to be manually
-    switched in no_big_db_func.py """
+def full_pipeline():
+    """ Runs all the code except the code to generate and store all possible models because
+    of issue with running two parallel tasks after each other"""
     basicConfig(filename='full_pipeline.log', level=DEBUG)
     
     t = time()
- 
+    
+    all_poss_models()
     preprocessing()
-    # all_poss_models()
     gen_all_lin_model_inp()
-    
-    run_no_big_db_parallel()
+    model_scoring()
     get_select_models()
-    
-    # if do_pca:
-        # model_scoring_pca()
-    # else:
-        # model_scoring()
-    
-    # get_all_top_models(do_pca)
     
     info('')
     info('******************')
@@ -197,12 +126,5 @@ def full_pipeline():#do_pca=False):
     req_time = time() - t
     read_time(req_time)
     
-def run_no_big_db_parallel():
-    all_names = get_all_names()
-    
-    v = rc[:]
-
-    v.map_sync(gen_and_score_mod, all_names)    
-
 if __name__ == "__main__":
     full_pipeline()
