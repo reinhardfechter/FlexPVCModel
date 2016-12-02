@@ -12,16 +12,17 @@ from ipyparallel import Client
 from pca import pca_X
 from sklearn.decomposition import PCA
 
+
 class Method():
     Q = Query()
     sv_db = access_db(0, True)
     Ys = []
     all_full_input = get_all_lin_model_inp()
     model_obj = LinearRegression(fit_intercept=False)
-    
+
     def get_all_names(self):
         return self.Ys.columns
-    
+
     def gen_and_score_mod(self, column):
         """Generates all models and scores the data without storing all the possible models,
         no big tinydb's are used"""
@@ -31,7 +32,7 @@ class Method():
 
         equip, d_type = column.split(' ')
 
-        top_db = access_db('Top_score_results_'+ equip + '_' + d_type, False)
+        top_db = access_db('Top_score_results_' + equip + '_' + d_type, False)
 
         for i in range(2):
             number_of_terms = i + 1
@@ -72,24 +73,26 @@ class Method():
                      'n_terms': number_of_terms,
                      'top_score': top_score,
                      'top_mcode': top_mcode
-                    }
+                     }
 
             top_db.insert(entry)
-            
+
+
 class No_PCA(Method):
     msrmnts = get_msrmnts(Method.sv_db, Method.Q)
     Ys = msrmnts
-    
+
     # Scale Ys
     Ys = Ys - Ys.min()
-    Ys = Ys/Ys.max()
-    Ys = Ys*2 - 1
-    
+    Ys = Ys / Ys.max()
+    Ys = Ys * 2 - 1
+
+
 class With_PCA(Method):
     X, df = pca_X()
     my_pca = PCA(n_components=0.99)
     my_pca.fit(X)
-    
+
     X_trans = my_pca.transform(X)
     sn_Y = list(df.index)
     Ys = map(list, zip(*X_trans))

@@ -7,6 +7,7 @@ from pandas import DataFrame, concat
 from sklearn.decomposition import PCA
 from datahandling import get_msrmnts
 
+
 def pca_X(impute=False, exclude_inp=True):
     sv_db = access_db(0, True)
 
@@ -16,7 +17,8 @@ def pca_X(impute=False, exclude_inp=True):
 
     compositions = DataFrame(sv_db.search(Q.ingredient.exists()))
     compositions['name'] = compositions.data_type + ' ' + compositions.ingredient
-    compositions = compositions[['name', 'sample_number', 'value']].pivot(index='sample_number', columns='name', values='value')
+    compositions = compositions[['name', 'sample_number', 'value']].pivot(index='sample_number', columns='name',
+                                                                          values='value')
 
     measurements = get_msrmnts(sv_db, Q)
 
@@ -45,6 +47,7 @@ def pca_X(impute=False, exclude_inp=True):
 
     #      X    ,df of data used
     return X_std, use
+
 
 def pca():
     X, df = pca_X()

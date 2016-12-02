@@ -1,40 +1,31 @@
 from __future__ import division
 from __future__ import print_function
-
-from datahandling import insert_update_db, my_query
-from time import time as tm
-import pandas as pd
-from matplotlib.backends.backend_pdf import PdfPages
-from lmfit import Parameters, minimize, report_fit
-from thermomat_functions import cond_model, f2min, find_cut_point, rand_ini_val, parameters
-from os import path
+from logging import debug
+from lmfit import minimize
 from numpy import trapz, log, abs
-import matplotlib.pyplot as plt
 from tinydb import Query
+from datahandling import insert_update_db, my_query
 from equipment import Thermomat
-from logging import debug, info
+from thermomat_functions import f2min, find_cut_point, rand_ini_val, parameters
+
 
 def thermomat_sva(db, redo):
     """ Setting redo = True will repeat analysis even if it has been done for that sample already
     The data in the data base will only be updated if the Error is less """
-    
+
     equipment = Thermomat()
 
-    Files = equipment.alldatafiles()
-    
-    t = tm()
+    files = equipment.alldatafiles()
 
-    Q = Query()
+    q = Query()
 
-    for j, f in enumerate(Files):
-        split_tm = tm()
-        
+    for j, f in enumerate(files):
         # Parsing filename
         sample_number = equipment.file_parse(f)
-        
+
         # Check if the relevant data exists and only do fit if necessary
-        done = db.contains((Q.equipment_name == equipment.name)
-                          & (Q.sample_number == int(sample_number)))
+        done = db.contains((q.equipment_name == equipment.name)
+                           & (q.sample_number == int(sample_number)))
 
         if done and not redo:
             debug('Skipped Fit %d', (j + 1))
@@ -56,7 +47,7 @@ def thermomat_sva(db, redo):
 
         # Find max conductivity to set upper limit of initial beta value
         max_cond = max(conduct_data)
-        ini_val_up_lim = [50.0, 500.0, 3.0*max_cond, 1.5]
+        ini_val_up_lim = [50.0, 500.0, 3.0 * max_cond, 1.5]
 
         # Fit Data with multiple starts
         starts = 10
@@ -90,10 +81,10 @@ def thermomat_sva(db, redo):
         theta = best_p['theta'].value
         tau = best_p['tau'].value
 
-        stab_time = tau*(1 - (log(theta)/(theta - 1)))*((theta - 1)**(1/theta))
+        stab_time = tau * (1 - (log(theta) / (theta - 1))) * ((theta - 1) ** (1 / theta))
         data_types.append('stab_time_min')
         values.append(stab_time)
-        
+
         if not done:
             insert_update_db(db, False, equipment.name, sample_number, data_types, values)
         else:
@@ -101,10 +92,3 @@ def thermomat_sva(db, redo):
             if smallest_err < old_err:
                 insert_update_db(db, True, equipment.name, sample_number, data_types, values)
                 debug('Updated Sample Number %s', sample_number)
-
-        split_tm = tm() - split_tm
-        debug('Completed Fit %d in %f (s)', (j + 1), round(split_tm, 2))
-
-    req_time = tm() - t
-    info('******************')
-    info('Time required (min) = %f', round(req_time/60.0, 2))

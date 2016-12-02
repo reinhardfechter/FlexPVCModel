@@ -1,11 +1,10 @@
 from __future__ import division
-
 import glob
-import json
 import os
-import pandas
 import os.path
+import pandas
 import datahandling
+
 
 class Equipment(object):
     """
@@ -137,7 +136,6 @@ class MassFrac(Equipment):
     sep = ';'
     datafields = 'Run', 'PVC', 'Filler', 'FR', 'Stabiliser', 'DINP', 'LDH', 'Spherical F.'
     name = 'MassFrac'
-
 
 # The basic idea is that you would write all the functions you have everywhere
 # which currently accept an equipment argument and then behave differently as

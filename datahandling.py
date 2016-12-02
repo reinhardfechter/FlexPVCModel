@@ -3,10 +3,9 @@ from __future__ import print_function
 
 import json
 import os
-import glob
+from logging import debug
 from pandas import DataFrame
 from tinydb import Query, TinyDB
-from logging import debug
 
 Q = Query()
 
@@ -18,11 +17,13 @@ with open('config.json') as f:
     assert os.path.exists(datadir)
     assert os.path.exists(dbpath)
 
+
 def my_query(equipment, sample_number, data_type):
     my_q = ((Q.equipment_name == equipment) &
             (Q.sample_number == int(sample_number)) &
             (Q.data_type == data_type))
     return my_q
+
 
 def insert_update_db(db, update, equipment, sample_number, names, values):
     """ Insert or update multiple data entries for the Single_Value_Database """
@@ -32,11 +33,12 @@ def insert_update_db(db, update, equipment, sample_number, names, values):
                      'sample_number': int(sample_number),
                      'data_type': n,
                      'value': v
-                    }
+                     }
             db.insert(entry)
 
         else:
             db.update({'value': v}, my_query(equipment, sample_number, n))
+
 
 def access_db(db, from_list):
     """ Accessing the databases
@@ -51,7 +53,7 @@ def access_db(db, from_list):
         debug('Accessed db: %s', db_name)
     else:
         db_name = db
-    
+
     my_db = TinyDB(os.path.join(dbpath, db_name + '.json'))
     return my_db
 
@@ -61,20 +63,23 @@ def get_equip_names(db):
     all_relevant = db.search(Query().equipment_name.exists())
     return list(set(extractnames(all_relevant, 'equipment_name')))
 
+
 def get_dtype_names(db, equipment):
     """ Get the data types given an equipment name from the Single_Value_Database """
     equip_data = db.search(Query().equipment_name == equipment)
     return list(set(extractnames(equip_data, 'data_type')))
 
+
 def extractnames(dictlist, *names):
     assert len(names) > 0
     result = list(map(list, list(zip(*[[item[name] for name in names]
-                                  for item in dictlist]))))
+                                       for item in dictlist]))))
     if len(names) == 1:
         return result[0]
     else:
         return result
-        
+
+
 def get_msrmnts(sv_db, Q):
     """Get all the measured data form the single value database"""
     measurements = DataFrame(sv_db.search(Q.equipment_name.exists() & Q.data_type.exists()))
@@ -82,8 +87,8 @@ def get_msrmnts(sv_db, Q):
     # This will automatically average the different measurements which repeat
     measurements = measurements.pivot_table(index='sample_number', columns='name', values='value')
 
-    measurements = measurements.drop([u'tensile E_t_MPa_mean', 
-                                      u'tensile epsilon_break_%_mean', 
+    measurements = measurements.drop([u'tensile E_t_MPa_mean',
+                                      u'tensile epsilon_break_%_mean',
                                       u'tensile epsilon_max_%_mean',
                                       u'tensile sigma_break_MPa_mean',
                                       u'tensile sigma_max_MPa_mean',
@@ -92,9 +97,10 @@ def get_msrmnts(sv_db, Q):
                                       u'tensile epsilon_max_%',
                                       u'tensile sigma_max_MPa',
                                       u'rheomix diff_long_short_stab_min'
-                                     ], axis=1)
-                                     
+                                      ], axis=1)
+
     return measurements
+
 
 def access_file(f_name, write=True):
     if not write:
