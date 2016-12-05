@@ -139,7 +139,7 @@ def highlight_true(val):
         return ''
 
 
-def property_results(x, used_con, con_limits, show_used_only):
+def property_results(x, used_con, con_limits, show_used_only=False, use_style=True):
     df = min_max_df(used_con, full=True)
 
     mod_df = get_mod_info()
@@ -164,9 +164,11 @@ def property_results(x, used_con, con_limits, show_used_only):
 
     df['constrained'] = ['constrained' if i in used_con else 'unconstrained' for i in df.index]
     df['constr_limit'] = [con_limits[used_con.index(i)] if i in used_con else None for i in df.index]
-
+    
+    if not use_style:
+        return df
+    
     return df.style.applymap(highlight_true)
-    # return df
 
 
 def rand_x0():

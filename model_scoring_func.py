@@ -148,7 +148,7 @@ def score_models(column):
 
     top_db = access_db('Top_score_results_' + equip + '_' + d_type, False)
 
-    for i in range(1):
+    for i in range(28):
         number_of_terms = i + 1
 
         done = top_db.contains(Q.n_terms == number_of_terms)
@@ -162,7 +162,6 @@ def score_models(column):
         f_obj.close()
 
         top_score = -10000.0
-        # noinspection PyAssignmentToLoopOrWithParameter
         for i in mcodes:
             # Generate X for certain model and Y
             X = gen_X(sn_Y, all_full_input, i)

@@ -60,9 +60,6 @@ def preprocessing():
     info('****************************')
 
 
-# Calling Client for multiprocessing
-
-
 def all_poss_models():
     info('****************************')
     info('Generate All Possible Models')
