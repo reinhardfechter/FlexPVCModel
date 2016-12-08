@@ -205,14 +205,15 @@ def opt_with_starts(ingr_cost, bnds, cons, starts=5):
         res = minimize(obj_fun, x0, args=ingr_cost, jac=True, bounds=bnds, constraints=cons)
 
         if res.message != 'Optimization terminated successfully.':
-            print('skipped')
-            print(res.fun)
-            print(res.message)
+            # print('skipped')
+            # print(res.fun)
+            # print(res.message)
             continue
 
         best_fun_val = min([best_fun_val, res.fun])
-        print(res.fun)
-        print(res.message)
+        # print('Number of Start: {}'.format(i))
+        # print('Objective Value: {}'.format(res.fun))
+        # print('Message: ' + res.message)
 
         if res.fun == best_fun_val:
             best_res = res
