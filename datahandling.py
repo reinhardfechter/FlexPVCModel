@@ -87,12 +87,7 @@ def get_msrmnts(sv_db, Q):
     # This will automatically average the different measurements which repeat
     measurements = measurements.pivot_table(index='sample_number', columns='name', values='value')
 
-    measurements = measurements.drop([#u'tensile E_t_MPa_mean',
-                                      # u'tensile epsilon_break_%_mean',
-                                      # u'tensile epsilon_max_%_mean',
-                                      # u'tensile sigma_break_MPa_mean',
-                                      # u'tensile sigma_max_MPa_mean',
-                                      u'thermomat int_of_abs_err',
+    measurements = measurements.drop([u'thermomat int_of_abs_err',
                                       u'ConeCal C-factor',
                                       u'tensile epsilon_max_%',
                                       u'tensile sigma_max_MPa',
